@@ -28,4 +28,4 @@ fi
 
 # Step 4: Launch Streamlit App
 echo "🚀 Launching AgroTech Platform on http://localhost:8501..."
-streamlit run app.py --server.port 8501
+streamlit run App.py --server.port 8501

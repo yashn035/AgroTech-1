@@ -58,7 +58,7 @@ def fetch_market_prices(api_key: str = None, state: str = "", district: str = ""
         params["filters[market]"] = market.strip()
         
     try:
-        response = requests.get(API_ENDPOINT, params=params, timeout=10)
+        response = requests.get(API_ENDPOINT, params=params, timeout=15)
         
         if response.status_code in (401, 403):
             raise RuntimeError("Unauthorized MANDI_API_KEY. Please verify your data.gov.in API key.")
@@ -74,7 +74,7 @@ def fetch_market_prices(api_key: str = None, state: str = "", district: str = ""
         return data.get("records", [])
         
     except requests.exceptions.Timeout:
-        raise RuntimeError("Mandi API connection timed out (10s).")
+        raise RuntimeError("Mandi API connection timed out (15s).")
     except requests.exceptions.ConnectionError:
         raise RuntimeError("Unable to connect to data.gov.in API.")
     except Exception as e:

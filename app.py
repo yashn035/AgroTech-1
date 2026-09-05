@@ -88,34 +88,34 @@ st.sidebar.divider()
 # Navigation Selection
 st.sidebar.markdown("### 📌 Navigation")
 selected_feature = st.sidebar.radio(
-    "Choose a Module:",
+    "Go to",
     [
         t("nav_home", lang),
-        t("nav_decision", lang),
         t("nav_copilot", lang),
-        t("nav_disease", lang),
-        t("nav_market", lang),
         t("nav_crop", lang),
+        t("nav_decision", lang),
+        t("nav_disease", lang),
         t("nav_yield", lang),
-        t("nav_early", lang)
+        t("nav_early", lang),
+        t("nav_market", lang)
     ]
 )
 
 # Navigation Redirects
-if selected_feature == t("nav_decision", lang):
-    st.switch_page("pages/decision_engine.py")
-elif selected_feature == t("nav_copilot", lang):
+if selected_feature == t("nav_copilot", lang):
     st.switch_page("pages/copilot.py")
-elif selected_feature == t("nav_disease", lang):
-    st.switch_page("pages/disease_detection.py")
-elif selected_feature == t("nav_market", lang):
-    st.switch_page("pages/market_price.py")
 elif selected_feature == t("nav_crop", lang):
     st.switch_page("pages/crop_recommendation.py")
+elif selected_feature == t("nav_decision", lang):
+    st.switch_page("pages/decision_engine.py")
+elif selected_feature == t("nav_disease", lang):
+    st.switch_page("pages/disease_detection.py")
 elif selected_feature == t("nav_yield", lang):
     st.switch_page("pages/district_yield.py")
 elif selected_feature == t("nav_early", lang):
     st.switch_page("pages/early_disease.py")
+elif selected_feature == t("nav_market", lang):
+    st.switch_page("pages/market_price.py")
 else:
     # Main Dashboard Hero
     st.markdown(f"""

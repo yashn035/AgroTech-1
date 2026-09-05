@@ -1,0 +1,31 @@
+Model_Label,Match_Status,Matched_Disease_in_DB,Best_Product,Formulation_dose,Dilution_in_water
+banana_bract_mosaic_virus,MATCHED,Banana Bract Mosaic Virus,Carbendazim 50% WP,2 g/L,500 L/ha
+banana_cordana,MATCHED,Cordana Leaf Spot,Propiconazole 25% EC,1 mL/L,500 L/ha
+banana_healthy,N/A,Healthy - no disease detected,N/A,N/A,N/A
+banana_insectpest,MATCHED,Banana Insect Pest,Chlorpyrifos 20% EC,2 mL/L,500 L/ha
+banana_moko,NO MATCH,Bacterial Wilt (Moko) - No chemical cure. Uproot infected plants and disinfect soil.,N/A,N/A,N/A
+banana_panama,NO MATCH,Panama Wilt (Fusarium) - Soil drenching with Trichoderma viride recommended; use resistant cultivars.,Trichoderma viride,5 g/kg soil,N/A
+banana_pestalotiopsis,MATCHED,Pestalotiopsis Leaf Spot,Mancozeb 75% WP,2.5 g/L,500 L/ha
+banana_sigatoka,MATCHED,Sigatoka Leaf Spot,Azoxystrobin 23% SC,1 mL/L,500 L/ha
+banana_yb_sigatoka,MATCHED,Yellow Sigatoka,Tebuconazole 25.9% EC,1 mL/L,500 L/ha
+cauliflower_Blackrot,MATCHED,Cauliflower Black Rot,Streptocycline + Copper Oxychloride,0.1 g + 2 g/L,400 L/ha
+cauliflower_bacterial _spot _rot,MATCHED,Bacterial Spot Rot,Copper Hydroxide 77% WP,2 g/L,400 L/ha
+cauliflower_downy_mildew,MATCHED,Cauliflower Downy Mildew,Metalaxyl 8% + Mancozeb 64% WP,2.5 g/L,400 L/ha
+cauliflower_healthy,N/A,Healthy - no disease detected,N/A,N/A,N/A
+chilli_anthracnose,MATCHED,Chilli Anthracnose,Azoxystrobin 18.2% + Difenoconazole 11.4% SC,1 mL/L,500 L/ha
+chilli_healthy,N/A,Healthy - no disease detected,N/A,N/A,N/A
+chilli_leafcurl,MATCHED,Chilli Leaf Curl (Vector Thrips/Whitefly),Imidacloprid 17.8% SL,0.5 mL/L,500 L/ha
+chilli_leafspot,MATCHED,Chilli Cercospora Leaf Spot,Mancozeb 75% WP,2 g/L,500 L/ha
+chilli_whitefly,MATCHED,Whitefly Infestation,Acetamiprid 20% SP,0.4 g/L,500 L/ha
+chilli_yellowish,NO MATCH,Chilli Yellowing - Potential nutrient deficiency. Apply NPK 19:19:19 foliar spray.,NPK 19:19:19,5 g/L,500 L/ha
+groundnut_early_leaf_spot,MATCHED,Groundnut Early Leaf Spot,Carbendazim 12% + Mancozeb 63% WP,2 g/L,500 L/ha
+groundnut_early_rust,MATCHED,Groundnut Early Rust,Hexaconazole 5% EC,1 mL/L,500 L/ha
+groundnut_healthy,N/A,Healthy - no disease detected,N/A,N/A,N/A
+groundnut_late_leaf_spot,MATCHED,Groundnut Late Leaf Spot,Chlorothalonil 75% WP,2 g/L,500 L/ha
+groundnut_nutrition_deficiency,NO MATCH,Groundnut Micronutrient Deficiency - Spray Zinc Sulfate (0.5%) and Borax (0.2%).,ZnSO4 + Borax,5 g/L,500 L/ha
+groundnut_rust,MATCHED,Groundnut Rust,Tebuconazole 50% + Trifloxystrobin 25% WG,0.7 g/L,500 L/ha
+radish_black_leaf_spot,MATCHED,Radish Black Leaf Spot,Copper Oxychloride 50% WP,2.5 g/L,400 L/ha
+radish_downey_mildew,MATCHED,Radish Downy Mildew,Cymoxanil 8% + Mancozeb 64% WP,2 g/L,400 L/ha
+radish_flea_beetle,MATCHED,Radish Flea Beetle,Thiamethoxam 25% WG,0.3 g/L,400 L/ha
+radish_healthy,N/A,Healthy - no disease detected,N/A,N/A,N/A
+radish_mosaic,MATCHED,Radish Mosaic Virus,Dimethoate 30% EC,1.7 mL/L,400 L/ha

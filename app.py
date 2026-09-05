@@ -77,6 +77,7 @@ selected_feature = st.sidebar.radio(
     "Choose a Module:",
     [
         t("nav_home", lang),
+        t("nav_copilot", lang),
         t("nav_disease", lang),
         t("nav_market", lang),
         t("nav_crop", lang),
@@ -86,7 +87,9 @@ selected_feature = st.sidebar.radio(
 )
 
 # Navigation Redirects
-if selected_feature == t("nav_disease", lang):
+if selected_feature == t("nav_copilot", lang):
+    st.switch_page("pages/copilot.py")
+elif selected_feature == t("nav_disease", lang):
     st.switch_page("pages/disease_detection.py")
 elif selected_feature == t("nav_market", lang):
     st.switch_page("pages/market_price.py")
@@ -115,20 +118,33 @@ else:
         st.markdown(f"""
             <div class="feature-card">
                 <span class="badge-live">{t('live_badge', lang)}</span>
-                <div class="feature-title" style="margin-top: 10px;">{t('nav_disease', lang)}</div>
+                <div class="feature-title" style="margin-top: 10px;">🤖 {t('nav_copilot', lang)}</div>
+                <p style="color: #555; font-size: 0.95rem;">
+                    RAG-powered AI chatbot assistant providing instant responses to crop care, disease control, soil fertilizing, and Mandi price queries.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button(f"{t('nav_copilot', lang)} ➔", key="btn_copilot", type="primary"):
+            st.switch_page("pages/copilot.py")
+
+        st.write("")
+        st.markdown(f"""
+            <div class="feature-card">
+                <span class="badge-live">{t('live_badge', lang)}</span>
+                <div class="feature-title" style="margin-top: 10px;">🌿 {t('nav_disease', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
                     Diagnose 30 leaf disease classes across 5 crop species using deep learning Keras models and paired pesticide dosages.
                 </p>
             </div>
         """, unsafe_allow_html=True)
-        if st.button(f"{t('nav_disease', lang)} ➔", key="btn_disease", type="primary"):
+        if st.button(f"{t('nav_disease', lang)} ➔", key="btn_disease"):
             st.switch_page("pages/disease_detection.py")
             
         st.write("")
         st.markdown(f"""
             <div class="feature-card">
                 <span class="badge-live">{t('live_badge', lang)}</span>
-                <div class="feature-title" style="margin-top: 10px;">{t('nav_market', lang)}</div>
+                <div class="feature-title" style="margin-top: 10px;">📊 {t('nav_market', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
                     Query real-time Indian Mandi arrival prices directly from data.gov.in REST APIs.
                 </p>
@@ -137,24 +153,24 @@ else:
         if st.button(f"{t('nav_market', lang)} ➔", key="btn_market"):
             st.switch_page("pages/market_price.py")
 
-        st.write("")
+    with col2:
         st.markdown(f"""
             <div class="feature-card">
                 <span class="badge-live">{t('live_badge', lang)}</span>
-                <div class="feature-title" style="margin-top: 10px;">{t('nav_crop', lang)}</div>
+                <div class="feature-title" style="margin-top: 10px;">🌱 {t('nav_crop', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
-                    Random Forest ML classifier trained on real soil-climate datasets recommending optimal crops.
+                    Random Forest ML classifier trained on real soil-climate datasets recommending crops based on agronomic suitability or expected profit per acre.
                 </p>
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_crop', lang)} ➔", key="btn_crop"):
             st.switch_page("pages/crop_recommendation.py")
         
-    with col2:
+        st.write("")
         st.markdown(f"""
             <div class="feature-card">
                 <span class="badge-live">{t('live_badge', lang)}</span>
-                <div class="feature-title" style="margin-top: 10px;">{t('nav_yield', lang)}</div>
+                <div class="feature-title" style="margin-top: 10px;">🌾 {t('nav_yield', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
                     District harvest yield analytics, multi-year progression (2015-2023), heatmaps, and CSV data export.
                 </p>
@@ -167,7 +183,7 @@ else:
         st.markdown(f"""
             <div class="feature-card">
                 <span class="badge-live">{t('live_badge', lang)}</span>
-                <div class="feature-title" style="margin-top: 10px;">{t('nav_early', lang)}</div>
+                <div class="feature-title" style="margin-top: 10px;">🔬 {t('nav_early', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
                     Rule-based early disease warning system calculating pathogen outbreak risk scores based on micro-climate weather triggers.
                 </p>
@@ -180,6 +196,6 @@ else:
     st.markdown("### 📊 System Specs")
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Production Status", "100% Live & Containerized")
-    m2.metric("Supported Languages", "English & हिंदी (Hindi)")
-    m3.metric("Datasets", "Real ICAR/Kaggle + Mandi API")
+    m2.metric("AI Copilot", "Active RAG Assistant")
+    m3.metric("Supported Languages", "English & हिंदी (Hindi)")
     m4.metric("Authentication", "Encrypted bcrypt / local JSON")

@@ -5,13 +5,14 @@ AgroTech Internationalization & Translation Module (English & Hindi)
 TRANSLATIONS = {
     "en": {
         "app_title": "🌾 AgroTech Platform",
-        "app_subtitle": "Empowering farmers with AI crop diagnostics, real-time market prices, smart crop selection, district yield analytics, and early disease risk warnings.",
+        "app_subtitle": "Empowering farmers with AI crop diagnostics, real-time market prices, smart profit crop selection, district yield analytics, early disease warnings, and AI Copilot.",
         "nav_home": "🏠 Home & Overview",
         "nav_disease": "🌿 Disease Detection + Pesticide Guidance",
         "nav_market": "📊 Mandi Market Price Checker",
         "nav_crop": "🌱 Smart Crop Recommendation",
         "nav_yield": "🌾 District Crop Yield Estimator",
         "nav_early": "🔬 Early Stage Disease Prevention",
+        "nav_copilot": "🤖 AI Agricultural Copilot",
         "live_badge": "LIVE NOW",
         "lang_select": "🌐 Choose Language / भाषा चुनें",
         "auth_header": "👤 User Account",
@@ -23,6 +24,7 @@ TRANSLATIONS = {
         "logout": "Logout",
         "btn_recommend": "🌱 Recommend Optimal Crop",
         "btn_assess": "🔬 Assess Disease Risk",
+        "btn_copilot": "🤖 Ask AI Copilot ➔",
         "btn_fetch_prices": "Fetch Market Prices ➔",
         "state": "State",
         "district": "District",
@@ -48,13 +50,14 @@ TRANSLATIONS = {
     },
     "hi": {
         "app_title": "🌾 एग्रोटेक प्लेटफॉर्म",
-        "app_subtitle": "एआई फसल निदान, वास्तविक समय के मंडी भाव, स्मार्ट फसल चयन, जिला उपज विश्लेषण और प्रारंभिक बीमारी जोखिम चेतावनियों के साथ किसानों को सशक्त बनाना।",
+        "app_subtitle": "एआई फसल निदान, वास्तविक समय के मंडी भाव, स्मार्ट लाभ फसल चयन, जिला उपज विश्लेषण, प्रारंभिक बीमारी चेतावनियों और एआई कोपायलट के साथ किसानों को सशक्त बनाना।",
         "nav_home": "🏠 होम और अवलोकन",
         "nav_disease": "🌿 बीमारी की पहचान + कीटनाशक सिफारिश",
         "nav_market": "📊 मंडी बाजार मूल्य जांच",
-        "nav_crop": "🌱 स्मार्ट फसल सिफारिश (एआई)",
+        "nav_crop": "🌱 स्मार्ट फसल सिफारिश (लाभ आधारित)",
         "nav_yield": "🌾 जिला फसल उपज अनुमानक",
         "nav_early": "🔬 प्रारंभिक बीमारी रोकथाम चेतावनी",
+        "nav_copilot": "🤖 एआई कृषि कोपायलट (सहायक)",
         "live_badge": "सक्रिय (लाइव)",
         "lang_select": "🌐 भाषा चुनें / Choose Language",
         "auth_header": "👤 उपयोगकर्ता खाता",
@@ -66,6 +69,7 @@ TRANSLATIONS = {
         "logout": "लॉग आउट",
         "btn_recommend": "🌱 सर्वोत्तम फसल की सिफारिश प्राप्त करें",
         "btn_assess": "🔬 बीमारी के जोखिम का आकलन करें",
+        "btn_copilot": "🤖 एआई सहायक से पूछें ➔",
         "btn_fetch_prices": "मंडी भाव प्राप्त करें ➔",
         "state": "राज्य",
         "district": "जिला",
@@ -81,7 +85,7 @@ TRANSLATIONS = {
         "optimal_crop": "अनुशंसित सर्वोत्तम फसल",
         "match_confidence": "मैच सटीकता दर",
         "model_accuracy": "मॉडल परीक्षण सटीकता",
-        "total_production": "कुल कुल उत्पादन",
+        "total_production": "कुल उत्पादन",
         "avg_yield": "औसत उपज (प्रति हेक्टेयर)",
         "area_harvested": "कुल बोया गया क्षेत्र",
         "district_records": "जिला रिकॉर्ड्स",
@@ -94,7 +98,6 @@ TRANSLATIONS = {
 def t(key: str, lang: str = "en") -> str:
     """
     Retrieves translated string for the given key and language.
-    Falls back to English if key is missing in chosen language.
     """
     lang_dict = TRANSLATIONS.get(lang, TRANSLATIONS["en"])
     return lang_dict.get(key, TRANSLATIONS["en"].get(key, key))

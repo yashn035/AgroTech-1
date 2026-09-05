@@ -52,12 +52,20 @@ if not api_key:
 has_key = bool(api_key and api_key.strip() and api_key != "your_key_here")
 
 if not has_key:
-    st.error(
-        "🔑 **MANDI_API_KEY Not Configured!**\n\n"
-        "To query live mandi market data from data.gov.in, set `MANDI_API_KEY` in your `.env` file or environment variables.\n"
-        "*(You can obtain a free API key at [data.gov.in](https://data.gov.in/))*"
+    st.warning(
+        "🔑 **MANDI_API_KEY Not Configured:** "
+        "Running in **Regional Benchmark Mode**. Search queries and analytics will use verified regional Mandi benchmark datasets."
     )
-    st.info("💡 **Benchmark Preview Active:** Search queries will use verified regional Mandi benchmark datasets.")
+    with st.expander("ℹ️ How to enable Live data.gov.in Mandi API (Optional)"):
+        st.markdown("""
+        To query live government Mandi market arrivals directly from [data.gov.in](https://data.gov.in/):
+        1. Register for a free API key at [data.gov.in](https://data.gov.in/).
+        2. If running locally, set `MANDI_API_KEY=your_key` in your `.env` file.
+        3. If running on **Streamlit Cloud**, go to **App Settings** (⚙️) ➔ **Secrets** and add:
+           ```toml
+           MANDI_API_KEY = "your_actual_api_key_here"
+           ```
+        """)
 
 # --- BENCHMARK FALLBACK GENERATOR ---
 def generate_benchmark_records(state: str, district: str, commodity: str, market: str) -> list:

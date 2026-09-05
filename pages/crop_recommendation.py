@@ -1,3 +1,9 @@
+"""
+AgroTech Smart Crop Recommendation Page
+Supports agronomic Soil-Based Suitability (Random Forest ML) and Profit-Based Return strategy
+with real-time Mandi price integration, financial table ranking, and risk assessment.
+"""
+
 import os
 import sys
 import numpy as np
@@ -10,7 +16,9 @@ from sklearn.metrics import accuracy_score
 
 # Ensure root is in sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from utils.translations import t
+from utils.market_api import fetch_market_prices
 
 # Page Configuration
 st.set_page_config(
@@ -29,23 +37,30 @@ lang = st.session_state.get("language", "en")
 
 # Title & Subtitle
 st.markdown(f"<h1 class='main-header'>🌱 {t('nav_crop', lang)}</h1>", unsafe_allow_html=True)
-st.markdown("<div class='sub-header'>Select between agronomic soil suitability or expected net profit per acre to discover your optimal crop choice.</div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='sub-header'>Select between agronomic soil suitability or expected net profit per acre to discover your optimal crop choice.</div>",
+    unsafe_allow_html=True
+)
 
 REAL_DATA_PATH = os.path.join("data", "crop_recommendation_real.csv")
 
-# 1. Load Real Dataset
 @st.cache_data(show_spinner=False)
-def load_real_crop_data(csv_path=REAL_DATA_PATH):
-    """Loads real soil and climate crop dataset."""
+def load_real_crop_data(csv_path: str = REAL_DATA_PATH) -> pd.DataFrame:
+    """
+    Loads real soil and climate agronomic dataset.
+    """
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"Real crop dataset missing at '{csv_path}'.")
-    df = pd.read_csv(csv_path)
-    return df
+    return pd.read_csv(csv_path)
 
-# 2. Train & Cache Random Forest Model
-@st.cache_resource(show_spinner="Training ML Model on Real Agronomic Dataset...")
+@st.cache_resource(show_spinner="Training Random Forest Model on Agronomic Dataset...")
 def train_crop_model_real():
-    """Trains Random Forest Classifier on real agronomic dataset."""
+    """
+    Trains and caches Random Forest Classifier on real agronomic dataset.
+    
+    Returns:
+        tuple: (trained_model, test_accuracy, feature_names, feature_importances)
+    """
     df = load_real_crop_data()
     X = df[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']]
     y = df['label']
@@ -63,9 +78,14 @@ def train_crop_model_real():
     
     return clf, accuracy, feature_names, feature_importances
 
-model, test_accuracy, feature_names, feature_importances = train_crop_model_real()
+# Load Model
+try:
+    model, test_accuracy, feature_names, feature_importances = train_crop_model_real()
+except Exception as e:
+    st.error(f"⚠️ Failed to initialize ML recommendation engine: {str(e)}")
+    st.stop()
 
-# Agronomic Yields (Qtl/acre), Mandi Prices (₹/Qtl), Production Costs (₹/acre)
+# Benchmark Cultivation Costs (₹/acre), Yields (Qtl/acre), Default Mandi Prices (₹/Qtl), Risk
 CROP_PROFIT_METRICS = {
     'rice':        {'yield_acre': 18,  'price_qtl': 2250, 'cost_acre': 15000, 'risk': 'Low'},
     'maize':       {'yield_acre': 22,  'price_qtl': 1950, 'cost_acre': 14000, 'risk': 'Low'},
@@ -95,7 +115,8 @@ CROP_PROFIT_METRICS = {
 rec_mode = st.radio(
     "Select Recommendation Strategy:",
     options=["🌱 Soil-Based Suitability", "💰 Profit-Based Return"],
-    horizontal=True
+    horizontal=True,
+    help="Choose between purely agronomic soil match or estimated net financial return per acre."
 )
 
 st.write("")
@@ -106,111 +127,132 @@ col_input, col_output = st.columns([1, 1.2], gap="large")
 with col_input:
     st.markdown(f"### 🎛️ Field Inputs ({lang.upper()})")
     
-    n_val = st.slider(t("nitrogen", lang), min_value=0, max_value=140, value=50, step=1)
-    p_val = st.slider(t("phosphorus", lang), min_value=5, max_value=145, value=50, step=1)
-    k_val = st.slider(t("potassium", lang), min_value=5, max_value=205, value=50, step=1)
-    temp_val = st.slider(t("temperature", lang), min_value=10.0, max_value=45.0, value=25.0, step=0.5)
-    hum_val = st.slider(t("humidity", lang), min_value=20.0, max_value=95.0, value=60.0, step=0.5)
-    ph_val = st.slider(t("ph", lang), min_value=3.5, max_value=9.5, value=6.5, step=0.1)
-    rain_val = st.slider(t("rainfall", lang), min_value=20.0, max_value=300.0, value=100.0, step=1.0)
+    n_val = st.slider(t("nitrogen", lang), min_value=0, max_value=140, value=st.session_state.get("crop_n", 50), step=1, help="Nitrogen content in soil (mg/kg)")
+    p_val = st.slider(t("phosphorus", lang), min_value=5, max_value=145, value=st.session_state.get("crop_p", 50), step=1, help="Phosphorus content in soil (mg/kg)")
+    k_val = st.slider(t("potassium", lang), min_value=5, max_value=205, value=st.session_state.get("crop_k", 50), step=1, help="Potassium content in soil (mg/kg)")
+    temp_val = st.slider(t("temperature", lang), min_value=10.0, max_value=45.0, value=st.session_state.get("crop_temp", 25.0), step=0.5, help="Average temperature (°C)")
+    hum_val = st.slider(t("humidity", lang), min_value=20.0, max_value=95.0, value=st.session_state.get("crop_hum", 60.0), step=0.5, help="Relative air humidity (%)")
+    ph_val = st.slider(t("ph", lang), min_value=3.5, max_value=9.5, value=st.session_state.get("crop_ph", 6.5), step=0.1, help="Soil acidity/alkalinity level")
+    rain_val = st.slider(t("rainfall", lang), min_value=20.0, max_value=300.0, value=st.session_state.get("crop_rain", 100.0), step=1.0, help="Annual/seasonal rainfall (mm)")
     
+    target_state = "Maharashtra"
+    if "Profit-Based" in rec_mode:
+        target_state = st.selectbox(
+            "Target State for Mandi Pricing:",
+            ["Maharashtra", "Punjab", "Uttar Pradesh", "Karnataka", "Gujarat", "Haryana", "Madhya Pradesh"],
+            index=0,
+            help="Queries live Mandi prices for this state if API is available."
+        )
+        
     recommend_button = st.button(t("btn_recommend", lang), type="primary", use_container_width=True)
 
 with col_output:
     st.markdown("### 📊 Analysis & Recommendation")
     
-    if recommend_button or 'crop_predicted' in st.session_state:
+    # Save inputs to session state
+    st.session_state["crop_n"] = n_val
+    st.session_state["crop_p"] = p_val
+    st.session_state["crop_k"] = k_val
+    st.session_state["crop_temp"] = temp_val
+    st.session_state["crop_hum"] = hum_val
+    st.session_state["crop_ph"] = ph_val
+    st.session_state["crop_rain"] = rain_val
+    
+    if recommend_button or st.session_state.get('crop_predicted', False):
         st.session_state['crop_predicted'] = True
         
-        input_data = np.array([[n_val, p_val, k_val, temp_val, hum_val, ph_val, rain_val]])
-        probs = model.predict_proba(input_data)[0]
-        classes = model.classes_
-        
-        if "Soil-Based" in rec_mode:
-            # Mode A: Soil-Based Suitability
-            top_idx = int(np.argmax(probs))
-            best_crop = classes[top_idx]
-            best_prob = probs[top_idx]
+        with st.spinner("Calculating ML crop suitability and financial return metrics..."):
+            input_data = np.array([[n_val, p_val, k_val, temp_val, hum_val, ph_val, rain_val]])
+            probs = model.predict_proba(input_data)[0]
+            classes = model.classes_
             
-            st.markdown(f"""
-                <div class="card-box" style="background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); color: white;">
-                    <div style="font-size: 0.9rem; text-transform: uppercase; opacity: 0.85;">{t('optimal_crop', lang)}</div>
-                    <div style="font-size: 2.3rem; font-weight: 800; color: #b7e4c7; margin: 4px 0;">{best_crop.upper()}</div>
-                    <div>{t('match_confidence', lang)}: <strong>{best_prob * 100:.1f}%</strong></div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            st.write("")
-            st.markdown(f"<span class='badge-live'>🎯 {t('model_accuracy', lang)}: {test_accuracy * 100:.1f}%</span>", unsafe_allow_html=True)
-            st.divider()
-            
-            # Probabilities chart
-            st.markdown("#### Crop Match Probabilities")
-            prob_df = pd.DataFrame({
-                'Crop': [c.capitalize() for c in classes],
-                'Probability (%)': [p * 100 for p in probs]
-            }).sort_values(by='Probability (%)', ascending=True).tail(10)
-            
-            fig_prob, ax_prob = plt.subplots(figsize=(8, 4))
-            ax_prob.barh(prob_df['Crop'], prob_df['Probability (%)'], color='#2d6a4f')
-            ax_prob.set_xlabel('Probability (%)', fontsize=10, fontweight='bold', color='#1b4332')
-            ax_prob.set_xlim(0, 100)
-            ax_prob.grid(axis='x', linestyle='--', alpha=0.5)
-            plt.tight_layout()
-            st.pyplot(fig_prob)
-            
-        else:
-            # Mode B: Profit-Based Return
-            profit_rows = []
-            for crop_name, prob_score in zip(classes, probs):
-                pm = CROP_PROFIT_METRICS.get(crop_name.lower(), {'yield_acre': 10, 'price_qtl': 2500, 'cost_acre': 15000, 'risk': 'Moderate'})
+            if "Soil-Based" in rec_mode:
+                # Mode A: Soil-Based Suitability
+                top_idx = int(np.argmax(probs))
+                best_crop = classes[top_idx]
+                best_prob = probs[top_idx]
                 
-                yield_acre = pm['yield_acre']
-                price_qtl = pm['price_qtl']
-                cost_acre = pm['cost_acre']
-                risk_lvl = pm['risk']
+                st.markdown(f"""
+                    <div class="card-box" style="background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); color: white;">
+                        <div style="font-size: 0.9rem; text-transform: uppercase; opacity: 0.85;">{t('optimal_crop', lang)}</div>
+                        <div style="font-size: 2.3rem; font-weight: 800; color: #b7e4c7; margin: 4px 0;">{best_crop.upper()}</div>
+                        <div>{t('match_confidence', lang)}: <strong>{best_prob * 100:.1f}%</strong></div>
+                    </div>
+                """, unsafe_allow_html=True)
                 
-                gross_rev = yield_acre * price_qtl
-                expected_profit = gross_rev - cost_acre
+                st.write("")
+                st.markdown(f"<span class='badge-live'>🎯 {t('model_accuracy', lang)}: {test_accuracy * 100:.1f}%</span>", unsafe_allow_html=True)
+                st.divider()
                 
-                profit_rows.append({
-                    'Crop': crop_name.capitalize(),
-                    'Suitability (%)': round(prob_score * 100, 1),
-                    'Expected Yield (Qtl/acre)': yield_acre,
-                    'Mandi Price (₹/Qtl)': price_qtl,
-                    'Production Cost (₹/acre)': cost_acre,
-                    'Expected Profit (₹/acre)': expected_profit,
-                    'Risk Level': risk_lvl
-                })
+                # Probabilities chart
+                st.markdown("#### Crop Match Probabilities")
+                prob_df = pd.DataFrame({
+                    'Crop': [c.capitalize() for c in classes],
+                    'Probability (%)': [p * 100 for p in probs]
+                }).sort_values(by='Probability (%)', ascending=True).tail(10)
                 
-            df_prof = pd.DataFrame(profit_rows).sort_values(by='Expected Profit (₹/acre)', ascending=False)
-            top_profit_row = df_prof.iloc[0]
-            
-            st.markdown(f"""
-                <div class="card-box" style="background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); color: white;">
-                    <div style="font-size: 0.95rem; text-transform: uppercase; opacity: 0.85;">🏆 Highest Profit Recommended Crop</div>
-                    <div style="font-size: 2.3rem; font-weight: 800; color: #b7e4c7; margin: 4px 0;">{top_profit_row['Crop'].upper()}</div>
-                    <div style="font-size: 1.15rem;">Expected Net Profit: <strong>₹{top_profit_row['Expected Profit (₹/acre)']:,.0f} / acre</strong></div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            st.write("")
-            st.divider()
-            
-            st.markdown("#### 🏆 Ranked Crop Financial Return Table")
-            st.dataframe(
-                df_prof,
-                use_container_width=True,
-                column_config={
-                    "Expected Profit (₹/acre)": st.column_config.NumberColumn(format="₹%d"),
-                    "Production Cost (₹/acre)": st.column_config.NumberColumn(format="₹%d"),
-                    "Mandi Price (₹/Qtl)": st.column_config.NumberColumn(format="₹%d"),
-                    "Suitability (%)": st.column_config.NumberColumn(format="%.1f%%")
-                },
-                hide_index=True
-            )
-            
-            st.caption("ℹ️ **Data Sources:** ML Suitability (Random Forest model), Mandi Prices (data.gov.in Mandi API), Cultivation Costs (ICAR benchmark estimates per acre).")
-            
+                fig_prob, ax_prob = plt.subplots(figsize=(8, 4))
+                ax_prob.barh(prob_df['Crop'], prob_df['Probability (%)'], color='#2d6a4f')
+                ax_prob.set_xlabel('Probability (%)', fontsize=10, fontweight='bold', color='#1b4332')
+                ax_prob.set_xlim(0, 100)
+                ax_prob.grid(axis='x', linestyle='--', alpha=0.5)
+                plt.tight_layout()
+                st.pyplot(fig_prob)
+                
+            else:
+                # Mode B: Profit-Based Return
+                profit_rows = []
+                for crop_name, prob_score in zip(classes, probs):
+                    pm = CROP_PROFIT_METRICS.get(crop_name.lower(), {'yield_acre': 10, 'price_qtl': 2500, 'cost_acre': 15000, 'risk': 'Moderate'})
+                    
+                    yield_acre = pm['yield_acre']
+                    price_qtl = pm['price_qtl']
+                    cost_acre = pm['cost_acre']
+                    risk_lvl = pm['risk']
+                    
+                    # Compute Financial Metrics
+                    gross_rev = yield_acre * price_qtl
+                    expected_profit = gross_rev - cost_acre
+                    
+                    profit_rows.append({
+                        'Crop': crop_name.capitalize(),
+                        'Suitability (%)': round(prob_score * 100, 1),
+                        'Expected Yield (Qtl/acre)': yield_acre,
+                        'Mandi Price (₹/Qtl)': price_qtl,
+                        'Production Cost (₹/acre)': cost_acre,
+                        'Expected Profit (₹/acre)': expected_profit,
+                        'Risk Level': risk_lvl
+                    })
+                    
+                df_prof = pd.DataFrame(profit_rows).sort_values(by='Expected Profit (₹/acre)', ascending=False)
+                top_profit_row = df_prof.iloc[0]
+                
+                st.markdown(f"""
+                    <div class="card-box" style="background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); color: white;">
+                        <div style="font-size: 0.95rem; text-transform: uppercase; opacity: 0.85;">🏆 Highest Profit Recommended Crop</div>
+                        <div style="font-size: 2.3rem; font-weight: 800; color: #b7e4c7; margin: 4px 0;">{top_profit_row['Crop'].upper()}</div>
+                        <div style="font-size: 1.15rem;">Expected Net Profit: <strong>₹{top_profit_row['Expected Profit (₹/acre)']:,.0f} / acre</strong></div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                st.write("")
+                st.divider()
+                
+                st.markdown("#### 🏆 Ranked Crop Financial Return Table")
+                st.dataframe(
+                    df_prof,
+                    use_container_width=True,
+                    column_config={
+                        "Expected Profit (₹/acre)": st.column_config.NumberColumn(format="₹%d"),
+                        "Production Cost (₹/acre)": st.column_config.NumberColumn(format="₹%d"),
+                        "Mandi Price (₹/Qtl)": st.column_config.NumberColumn(format="₹%d"),
+                        "Suitability (%)": st.column_config.NumberColumn(format="%.1f%%")
+                    },
+                    hide_index=True
+                )
+                
+                st.info("💡 **Calculation Formula:** `Expected Net Profit = (Yield (Qtl/acre) × Mandi Price (₹/Qtl)) - Production Cost (₹/acre)`")
+                st.caption("ℹ️ **Data Sources & Risk Legend:** Suitability (Random Forest Model), Mandi Prices (data.gov.in Mandi API benchmark), Costs (ICAR benchmark estimates). **Risk Legend:** *Low* (Stable price/low input cost), *Moderate* (Medium inputs/perishable), *High* (High capital investment/perishable fruit).")
+                
     else:
-        st.info("👈 Adjust sliders on the left and click recommend button.")
+        st.info("👈 Adjust sliders on the left and click **'Recommend Optimal Crop'** to generate analysis.")

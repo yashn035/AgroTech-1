@@ -1,3 +1,9 @@
+"""
+AgroTech AI Agricultural Copilot Page
+Provides an interactive RAG-powered chat assistant interface for farmers with chat history,
+pre-populated prompt chips, source citations, and clear history functionality.
+"""
+
 import os
 import sys
 import streamlit as st
@@ -25,19 +31,35 @@ lang = st.session_state.get("language", "en")
 
 # Title & Subtitle
 st.markdown(f"<h1 class='main-header'>🤖 {t('nav_copilot', lang)}</h1>", unsafe_allow_html=True)
-st.markdown("<div class='sub-header'>Interactive RAG-powered Generative AI assistant providing real-time crop care, disease diagnosis, and Mandi market intelligence.</div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='sub-header'>Interactive RAG-powered Generative AI assistant providing real-time crop care, disease diagnosis, and Mandi market intelligence.</div>",
+    unsafe_allow_html=True
+)
 
-# Initialize Chat History
+# Initialize Session Chat History
 if "copilot_messages" not in st.session_state:
     st.session_state.copilot_messages = [
         {
             "role": "assistant",
-            "content": "👋 Namaste! I am your **AI Agricultural Copilot**. How can I help with your crops, soil, disease management, or market prices today?"
+            "content": "👋 Namaste! I am your **AI Agricultural Copilot**. How can I help with your crop health, soil nutrients, plant disease control, or Mandi prices today?",
+            "sources": []
         }
     ]
 
-# Sidebar Example Prompts
-st.sidebar.markdown("### 💡 Example Prompts")
+# Sidebar Controls & Example Prompts
+st.sidebar.markdown("### ⚙️ Copilot Controls")
+if st.sidebar.button("🗑️ Clear Chat History", type="secondary", use_container_width=True):
+    st.session_state.copilot_messages = [
+        {
+            "role": "assistant",
+            "content": "👋 Namaste! Chat history cleared. How can I assist you now?",
+            "sources": []
+        }
+    ]
+    st.rerun()
+
+st.sidebar.divider()
+st.sidebar.markdown("### 💡 Quick Example Questions")
 example_prompts = [
     "How to treat Cauliflower Black Rot?",
     "What pesticide to spray for Sigatoka Leaf Spot?",
@@ -48,42 +70,52 @@ example_prompts = [
 
 selected_prompt = None
 for ep in example_prompts:
-    if st.sidebar.button(f"❓ {ep}", use_container_width=True):
+    if st.sidebar.button(f"❓ {ep}", use_container_width=True, help="Click to ask this question immediately"):
         selected_prompt = ep
 
 # Display Chat History
 for msg in st.session_state.copilot_messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-        if "sources" in msg and msg["sources"]:
-            with st.expander("📚 View RAG Sources & Knowledge Context"):
+        if msg.get("sources"):
+            with st.expander("📚 View Verified Knowledge Sources"):
                 for src in msg["sources"]:
                     st.markdown(f"- {src}")
 
-# Handle Input
-user_query = st.chat_input("Ask a question about crop care, disease, weather, or mandi prices...") or selected_prompt
+# Handle Input (Chat Input box or Sidebar Chip)
+chat_input_val = st.chat_input("Ask a question about crop care, disease, weather, or mandi prices...")
+user_query = chat_input_val or selected_prompt
 
 if user_query:
-    # Append user prompt
-    st.session_state.copilot_messages.append({"role": "user", "content": user_query})
+    # Append & display user prompt
+    st.session_state.copilot_messages.append({"role": "user", "content": user_query, "sources": []})
     with st.chat_message("user"):
         st.markdown(user_query)
         
-    # Generate RAG response
+    # Generate RAG response with spinner
     with st.chat_message("assistant"):
-        with st.spinner("Searching agricultural knowledge base & synthesizing response..."):
-            res = query_rag_copilot(user_query)
-            ans = res["answer"]
-            sources = res["sources"]
-            
-            st.markdown(ans)
-            if sources:
-                with st.expander("📚 View RAG Sources & Knowledge Context"):
-                    for src in sources:
-                        st.markdown(f"- {src}")
-                        
-            st.session_state.copilot_messages.append({
-                "role": "assistant",
-                "content": ans,
-                "sources": sources
-            })
+        with st.spinner("🔍 Searching agricultural knowledge base & synthesizing response..."):
+            try:
+                res = query_rag_copilot(user_query)
+                ans = res.get("answer", "Unable to generate response at this time.")
+                sources = res.get("sources", [])
+                
+                st.markdown(ans)
+                if sources:
+                    with st.expander("📚 View Verified Knowledge Sources"):
+                        for src in sources:
+                            st.markdown(f"- {src}")
+                            
+                st.session_state.copilot_messages.append({
+                    "role": "assistant",
+                    "content": ans,
+                    "sources": sources
+                })
+            except Exception as e:
+                err_msg = "⚠️ An unexpected error occurred while processing your request. Please try again."
+                st.error(err_msg)
+                st.session_state.copilot_messages.append({
+                    "role": "assistant",
+                    "content": err_msg,
+                    "sources": []
+                })

@@ -1,19 +1,46 @@
+"""
+AgroTech RAG Engine & AI Copilot Synthesizer
+Provides document indexing, semantic vector retrieval (SentenceTransformers/TF-IDF),
+and LLM response synthesis with graceful API & keyword fallbacks.
+"""
+
 import os
 import re
 import pandas as pd
 import streamlit as st
 
+import warnings
+
+# Optional LLM integration
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        import google.generativeai as genai
+    HAS_GEMINI = True
+except ImportError:
+    HAS_GEMINI = False
+    genai = None
+
+# Optional SentenceTransformer vector embedding integration
+try:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+    HAS_ST = True
+except ImportError:
+    HAS_ST = False
+    SentenceTransformer = None
+
 AGRO_KNOWLEDGE_DOCS = [
     {
-        "topic": "Banana Disease Treatment",
+        "topic": "Banana Disease & Pest Management",
         "text": "For Banana Bract Mosaic Virus, apply Carbendazim 50% WP at 2 g/L. For Sigatoka Leaf Spot, apply Azoxystrobin 23% SC at 1 mL/L. For Panama Wilt, chemical treatment is ineffective; use Trichoderma viride soil drenching and resistant cultivars."
     },
     {
-        "topic": "Cauliflower Pest & Rot Care",
+        "topic": "Cauliflower Black Rot & Downy Mildew",
         "text": "For Cauliflower Black Rot, use Streptocycline (0.1 g/L) + Copper Oxychloride (2 g/L). For Downy Mildew, apply Metalaxyl 8% + Mancozeb 64% WP at 2.5 g/L. Ensure seedbed solarization."
     },
     {
-        "topic": "Chilli Disease Management",
+        "topic": "Chilli Anthracnose & Leaf Curl Virus",
         "text": "For Chilli Anthracnose, apply Azoxystrobin 18.2% + Difenoconazole 11.4% SC at 1 mL/L. For Leaf Curl Virus vector control, spray Imidacloprid 17.8% SL at 0.5 mL/L or Acetamiprid 20% SP for Whiteflies."
     },
     {
@@ -25,19 +52,27 @@ AGRO_KNOWLEDGE_DOCS = [
         "text": "Nitrogen promotes vegetative leaf growth (Urea 46% N). Phosphorus encourages root development and flowering (SSP 16% P2O5). Potassium enhances drought tolerance and pest resistance (MOP 60% K2O). Maintain soil pH between 6.0 and 7.5."
     },
     {
-        "topic": "Irrigation & Weather Water Management",
+        "topic": "Irrigation & Extreme Weather Strategy",
         "text": "During heavy rainfall (>150mm), open field drainage channels to prevent root asphyxiation and damping off. During heat stress (>35°C), irrigate during early morning or late evening using drip systems to cut evaporation."
     },
     {
-        "topic": "Mandi Prices & Marketing Strategy",
-        "text": "Check live daily prices on data.gov.in. Commodities like Onion and Potato exhibit high price volatility in Maharashtra and UP mandis. Store non-perishables in dry godowns when prices dip."
+        "topic": "Mandi Market Prices & Selling Advisory",
+        "text": "Check live daily prices on data.gov.in. Commodities like Onion, Potato, and Tomato exhibit high price volatility in Mandis. Store non-perishables in dry godowns when prices dip."
+    },
+    {
+        "topic": "Tomato & Potato Blight Control",
+        "text": "For Potato and Tomato Late Blight, apply Mancozeb 75% WP at 2 g/L or Chlorothalonil 75% WP at 2 g/L. Ensure proper crop rotation and avoid overhead sprinkling."
     }
 ]
 
 @st.cache_data(show_spinner=False)
-def load_rag_knowledge_base():
+def load_rag_knowledge_base() -> list:
     """
-    Assembles complete knowledge base from CSVs and static advisories.
+    Assembles the complete agricultural knowledge base by merging CSV database mappings 
+    and static agronomic advisories.
+    
+    Returns:
+        list: List of dictionaries with 'topic' and 'text' keys.
     """
     kb = list(AGRO_KNOWLEDGE_DOCS)
     
@@ -56,27 +91,58 @@ def load_rag_knowledge_base():
                 
                 kb.append({
                     "topic": f"Pesticide Rule for {lbl}",
-                    "text": f"Label: {lbl} | Status: {status} | Disease: {disease} | Product: {product} | Dose: {dose} | Dilution: {dilution}"
+                    "text": f"Crop Label: {lbl} | Status: {status} | Disease: {disease} | Product: {product} | Dose: {dose} | Water Dilution: {dilution}"
                 })
         except Exception:
             pass
             
     return kb
 
-def query_rag_copilot(query_text: str, top_k: int = 3) -> dict:
+@st.cache_resource(show_spinner=False)
+def load_embedding_model():
     """
-    Retrieves top relevant knowledge chunks and synthesizes copilot response.
+    Loads and caches sentence-transformers model if installed.
+    Returns None if package is unavailable.
+    """
+    if HAS_ST:
+        try:
+            return SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        except Exception:
+            return None
+    return None
+
+def retrieve_context_chunks(query_text: str, top_k: int = 3) -> list:
+    """
+    Retrieves the top-k relevant knowledge chunks using SentenceTransformers if available,
+    falling back to keyword term overlap.
     
     Args:
-        query_text (str): Farmer prompt query.
-        top_k (int): Number of top chunks to retrieve.
+        query_text (str): Farmer user prompt.
+        top_k (int): Number of chunks to retrieve.
         
     Returns:
-        dict: Answer string and list of source citations.
+        list: List of retrieved document dicts.
     """
     kb = load_rag_knowledge_base()
-    query_words = set(re.findall(r'\w+', query_text.lower()))
+    embedder = load_embedding_model()
     
+    if embedder is not None:
+        try:
+            corpus_texts = [d["text"] for d in kb]
+            corpus_embeddings = embedder.encode(corpus_texts, convert_to_tensor=True)
+            query_embedding = embedder.encode(query_text, convert_to_tensor=True)
+            
+            # Compute cosine similarity
+            from sentence_transformers import util
+            hits = util.semantic_search(query_embedding, corpus_embeddings, top_k=top_k)[0]
+            retrieved = [kb[hit['corpus_id']] for hit in hits]
+            if retrieved:
+                return retrieved
+        except Exception:
+            pass
+            
+    # Fallback: Term Overlap Matching
+    query_words = set(re.findall(r'\w+', query_text.lower()))
     scored_docs = []
     for doc in kb:
         doc_words = set(re.findall(r'\w+', doc["text"].lower()))
@@ -89,16 +155,58 @@ def query_rag_copilot(query_text: str, top_k: int = 3) -> dict:
     if not retrieved:
         retrieved = [kb[0], kb[4]]  # Default fallback chunks
         
-    sources = [f"**{d['topic']}**: {d['text']}" for d in retrieved]
+    return retrieved
+
+def query_rag_copilot(query_text: str, top_k: int = 3) -> dict:
+    """
+    Queries the RAG engine and generates a response.
+    Tries Gemini API if GEMINI_API_KEY is set, otherwise generates structured rule-based advisory.
     
-    # Synthesize answer
-    answer_parts = []
-    answer_parts.append(f"🤖 **AgroCopilot Advisory:**\nBased on your query *'{query_text}'*, here is the recommended guidance:\n")
-    
-    for idx, doc in enumerate(retrieved, start=1):
-        answer_parts.append(f"{idx}. **{doc['topic']}**: {doc['text']}")
+    Args:
+        query_text (str): Farmer prompt query.
+        top_k (int): Number of context chunks.
         
-    answer_parts.append("\n💡 *Always verify specific chemical applications with your local KVK or agricultural extension office.*")
+    Returns:
+        dict: Containing 'answer' (str) and 'sources' (list).
+    """
+    retrieved_docs = retrieve_context_chunks(query_text, top_k=top_k)
+    sources = [f"**{d['topic']}**: {d['text']}" for d in retrieved_docs]
+    
+    # Check for Gemini API Key
+    api_key = os.getenv("GEMINI_API_KEY")
+    if HAS_GEMINI and api_key:
+        try:
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            
+            context_str = "\n".join([f"- {d['topic']}: {d['text']}" for d in retrieved_docs])
+            prompt = f"""You are AgroCopilot, an expert AI agricultural assistant helping farmers in India.
+Use the following retrieved context to answer the user's question accurately, concisely, and in simple farmer-friendly bullet points.
+
+Retrieved Context:
+{context_str}
+
+User Question: {query_text}
+
+Provide clear, actionable recommendations:"""
+            
+            response = model.generate_content(prompt)
+            if response and response.text:
+                return {
+                    "answer": response.text.strip(),
+                    "sources": sources
+                }
+        except Exception:
+            pass # Fall through to structured rule synthesis
+            
+    # Rule-Based Synthesis Fallback
+    answer_parts = []
+    answer_parts.append(f"🤖 **AgroCopilot Knowledge Synthesis:**\n\nBased on your query *'{query_text}'*, here are the verified recommendations from our agricultural database:\n")
+    
+    for idx, doc in enumerate(retrieved_docs, start=1):
+        answer_parts.append(f"**{idx}. {doc['topic']}**\n{doc['text']}")
+        
+    answer_parts.append("\n💡 **Farmer Tip:** Always verify chemical dosages with local Krishi Vigyan Kendra (KVK) officers before field application.")
     
     full_answer = "\n\n".join(answer_parts)
     return {

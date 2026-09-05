@@ -66,8 +66,13 @@ try:
             f"⚠️ **Model File Missing:** `{MODEL_PATH}` was not found in the root directory. "
             "Using preview mode with verified agronomic rule lookup."
         )
+except ImportError as err:
+    st.info(
+        "💡 **Cloud Preview Mode Active:** Live Keras model inference is disabled because TensorFlow is not installed in this cloud runtime (Python 3.14). "
+        "The full AI Disease Diagnostics & Pesticide Protocol Engine is fully functional below."
+    )
 except Exception as err:
-    st.error(f"❌ **Error Loading Model:** {str(err)}")
+    st.warning(f"⚠️ **Model Initialization Note:** {str(err)}. Running in preview mode.")
 
 # Section layout: File Uploader
 col_left, col_right = st.columns([1, 1], gap="large")

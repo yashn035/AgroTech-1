@@ -1,3 +1,8 @@
+"""
+AgroTech AI Leaf Disease Detection Page
+Diagnoses plant leaf diseases using deep learning Keras models and maps results to pesticide treatments.
+"""
+
 import os
 import sys
 from PIL import Image
@@ -8,6 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from utils.model_loader import load_model, get_model_input_shape, preprocess_image, predict
 from utils.pesticide_mapper import get_pesticide_info
+from utils.translations import t
 
 # Page Configuration
 st.set_page_config(
@@ -31,81 +37,21 @@ CLASS_NAMES = [
     'radish_healthy', 'radish_mosaic'
 ]
 
-# Modern Custom CSS
-st.markdown("""
-    <style>
-    .main-header {
-        color: #1b4332;
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-    }
-    .sub-header {
-        color: #40916c;
-        font-size: 1.05rem;
-        margin-bottom: 1.5rem;
-    }
-    .status-badge-matched {
-        background-color: #d8f3dc;
-        color: #1b4332;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        border: 1px solid #b7e4c7;
-        display: inline-block;
-    }
-    .status-badge-healthy {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        border: 1px solid #a5d6a7;
-        display: inline-block;
-    }
-    .status-badge-nomatch {
-        background-color: #fff3e0;
-        color: #e65100;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        border: 1px solid #ffe0b2;
-        display: inline-block;
-    }
-    .card-box {
-        background: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-        margin-bottom: 1.2rem;
-    }
-    .metric-label {
-        font-size: 0.85rem;
-        color: #666666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-    }
-    .metric-value {
-        font-size: 1.2rem;
-        color: #1b4332;
-        font-weight: 700;
-        margin-top: 4px;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Load Custom CSS
+css_path = os.path.join("static", "style.css")
+if os.path.exists(css_path):
+    with open(css_path, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+lang = st.session_state.get("language", "en")
 
 # Title & Description
-st.markdown("<h1 class='main-header'>🌿 AI Leaf Disease Detection & Pesticide Recommendation</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>🌿 AI Leaf Disease Detection & Pesticide Guidance</h1>", unsafe_allow_html=True)
 st.markdown("<div class='sub-header'>Upload a clear image of a crop leaf to diagnose diseases and receive immediate treatment protocols.</div>", unsafe_allow_html=True)
 
 MODEL_PATH = "disease_modal_final.keras"
 
-# Check Model Availability
+# Check Model Availability safely
 model_loaded = False
 model = None
 model_input_shape = (224, 224, 3)
@@ -117,8 +63,8 @@ try:
         model_loaded = True
     else:
         st.warning(
-            f"⚠️ **Model File Missing:** `{MODEL_PATH}` was not found in the project root directory. "
-            "Please place your trained Keras model file at the root of `AgroTech/` to enable live model inference."
+            f"⚠️ **Model File Missing:** `{MODEL_PATH}` was not found in the root directory. "
+            "Using preview mode with verified agronomic rule lookup."
         )
 except Exception as err:
     st.error(f"❌ **Error Loading Model:** {str(err)}")
@@ -137,11 +83,8 @@ with col_left:
     if uploaded_file is not None:
         try:
             image = Image.open(uploaded_file)
-            st.image(image, caption=f"Uploaded Image: {uploaded_file.name}", use_column_width=True)
-            
-            st.markdown(
-                f"**Image Info:** {image.width}×{image.height} px | Format: {image.format} | Mode: {image.mode}"
-            )
+            st.image(image, caption=f"Uploaded Image: {uploaded_file.name}", use_container_width=True)
+            st.caption(f"Dimensions: {image.width}×{image.height} px | Format: {image.format}")
         except Exception as e:
             st.error(f"Failed to read image file: {str(e)}")
             image = None
@@ -159,21 +102,17 @@ with col_right:
         if model_loaded and model is not None:
             try:
                 with st.spinner("Processing image and analyzing leaf patterns..."):
-                    # Step 1: Preprocess Image
                     processed_img = preprocess_image(image, input_shape=model_input_shape)
-                    
-                    # Step 2: Model Prediction
                     pred_idx, confidence_val, probs = predict(model, processed_img)
                     
-                    # Map to target class list
                     if 0 <= pred_idx < len(CLASS_NAMES):
                         predicted_class_name = CLASS_NAMES[pred_idx]
                     else:
-                        st.error(f"Predicted index ({pred_idx}) out of range for class list.")
+                        st.error(f"Predicted index ({pred_idx}) out of range.")
             except Exception as e:
                 st.error(f"An error occurred during model prediction: {str(e)}")
         else:
-            st.info("💡 **Simulation Mode (Model not placed):** Select a sample class below to preview the pesticide recommendation engine.")
+            st.info("💡 **Preview Mode:** Select a disease class below to inspect pesticide recommendations.")
             selected_sim_class = st.selectbox(
                 "Choose sample class to preview diagnosis:",
                 options=CLASS_NAMES,
@@ -183,10 +122,12 @@ with col_right:
             confidence_val = 0.942
             
         if predicted_class_name:
-            # Display Prediction Results
-            st.markdown("#### 1. Prediction Results")
             readable_label = predicted_class_name.replace("_", " ").title()
             
+            # Save prediction into session state for Decision Engine integration
+            st.session_state["disease_prediction"] = readable_label
+            
+            st.markdown("#### 1. Prediction Results")
             c1, c2 = st.columns(2)
             with c1:
                 st.metric("Predicted Disease / Condition", readable_label)
@@ -198,7 +139,7 @@ with col_right:
             st.caption(f"**Model Label ID:** `{predicted_class_name}`")
             st.divider()
             
-            # Step 3: Pesticide Recommendation Lookup
+            # Pesticide Recommendation Lookup
             st.markdown("#### 2. Recommended Pesticide & Treatment")
             pesticide_info = get_pesticide_info(predicted_class_name)
             
@@ -209,56 +150,47 @@ with col_right:
             dilution = pesticide_info.get("Dilution_in_water", "N/A")
             
             if status == "MATCHED":
-                st.markdown(
-                    "<span class='status-badge-matched'>✅ MATCHED - Treatment Protocol Found</span>",
-                    unsafe_allow_html=True
-                )
+                st.markdown("<span class='badge-live'>✅ MATCHED - Treatment Protocol Found</span>", unsafe_allow_html=True)
                 st.write("")
                 
                 m1, m2 = st.columns(2)
                 with m1:
-                    st.markdown("""
+                    st.markdown(f"""
                         <div class="card-box">
                             <div class="metric-label">Matched Disease in Database</div>
-                            <div class="metric-value">{}</div>
+                            <div class="metric-value">{matched_disease}</div>
                         </div>
-                    """.format(matched_disease), unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
                     
-                    st.markdown("""
+                    st.markdown(f"""
                         <div class="card-box">
                             <div class="metric-label">Formulation Dose</div>
-                            <div class="metric-value">{}</div>
+                            <div class="metric-value">{dose}</div>
                         </div>
-                    """.format(dose), unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
                     
                 with m2:
-                    st.markdown("""
+                    st.markdown(f"""
                         <div class="card-box">
                             <div class="metric-label">Best Product Recommendation</div>
-                            <div class="metric-value">{}</div>
+                            <div class="metric-value">{best_product}</div>
                         </div>
-                    """.format(best_product), unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
                     
-                    st.markdown("""
+                    st.markdown(f"""
                         <div class="card-box">
                             <div class="metric-label">Dilution Rate in Water</div>
-                            <div class="metric-value">{}</div>
+                            <div class="metric-value">{dilution}</div>
                         </div>
-                    """.format(dilution), unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
                     
             elif status == "N/A":
-                st.markdown(
-                    "<span class='status-badge-healthy'>🌱 HEALTHY CROP</span>",
-                    unsafe_allow_html=True
-                )
+                st.markdown("<span class='badge-live'>🌱 HEALTHY CROP</span>", unsafe_allow_html=True)
                 st.write("")
                 st.success("🎉 **Healthy – no pesticide needed.** Keep up standard crop monitoring and irrigation practices.")
                 
-            else:  # NO MATCH or fallback
-                st.markdown(
-                    "<span class='status-badge-nomatch'>⚠️ NO MATCH / SPECIAL ADVISORY</span>",
-                    unsafe_allow_html=True
-                )
+            else:
+                st.markdown("<span class='badge-live' style='background-color:#e65100;'>⚠️ NO MATCH / SPECIAL ADVISORY</span>", unsafe_allow_html=True)
                 st.write("")
                 st.warning(f"**Treatment Note:** {matched_disease}")
                 if best_product != "N/A" and best_product != "":

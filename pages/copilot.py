@@ -36,9 +36,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Initialize Session Chat History
+# Initialize Session Chat History safely
 if "copilot_messages" not in st.session_state:
-    st.session_state.copilot_messages = [
+    st.session_state["copilot_messages"] = [
         {
             "role": "assistant",
             "content": "👋 Namaste! I am your **AI Agricultural Copilot**. How can I help with your crop health, soil nutrients, plant disease control, or Mandi prices today?",
@@ -49,7 +49,7 @@ if "copilot_messages" not in st.session_state:
 # Sidebar Controls & Example Prompts
 st.sidebar.markdown("### ⚙️ Copilot Controls")
 if st.sidebar.button("🗑️ Clear Chat History", type="secondary", use_container_width=True):
-    st.session_state.copilot_messages = [
+    st.session_state["copilot_messages"] = [
         {
             "role": "assistant",
             "content": "👋 Namaste! Chat history cleared. How can I assist you now?",
@@ -73,10 +73,11 @@ for ep in example_prompts:
     if st.sidebar.button(f"❓ {ep}", use_container_width=True, help="Click to ask this question immediately"):
         selected_prompt = ep
 
-# Display Chat History
-for msg in st.session_state.copilot_messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+# Display Chat History (safely bounded)
+messages = st.session_state.get("copilot_messages", [])
+for msg in messages:
+    with st.chat_message(msg.get("role", "assistant")):
+        st.markdown(msg.get("content", ""))
         if msg.get("sources"):
             with st.expander("📚 View Verified Knowledge Sources"):
                 for src in msg["sources"]:
@@ -84,15 +85,16 @@ for msg in st.session_state.copilot_messages:
 
 # Handle Input (Chat Input box or Sidebar Chip)
 chat_input_val = st.chat_input("Ask a question about crop care, disease, weather, or mandi prices...")
-user_query = chat_input_val or selected_prompt
+raw_query = chat_input_val or selected_prompt
+user_query = raw_query.strip() if raw_query else ""
 
 if user_query:
     # Append & display user prompt
-    st.session_state.copilot_messages.append({"role": "user", "content": user_query, "sources": []})
+    st.session_state["copilot_messages"].append({"role": "user", "content": user_query, "sources": []})
     with st.chat_message("user"):
         st.markdown(user_query)
         
-    # Generate RAG response with spinner
+    # Generate RAG response with spinner and exception safety
     with st.chat_message("assistant"):
         with st.spinner("🔍 Searching agricultural knowledge base & synthesizing response..."):
             try:
@@ -106,16 +108,20 @@ if user_query:
                         for src in sources:
                             st.markdown(f"- {src}")
                             
-                st.session_state.copilot_messages.append({
+                st.session_state["copilot_messages"].append({
                     "role": "assistant",
                     "content": ans,
                     "sources": sources
                 })
             except Exception as e:
-                err_msg = "⚠️ An unexpected error occurred while processing your request. Please try again."
+                err_msg = "⚠️ An unexpected error occurred while processing your request. Please try asking again."
                 st.error(err_msg)
-                st.session_state.copilot_messages.append({
+                st.session_state["copilot_messages"].append({
                     "role": "assistant",
                     "content": err_msg,
                     "sources": []
                 })
+
+    # Limit chat history to max 20 messages to preserve UI responsiveness
+    if len(st.session_state["copilot_messages"]) > 20:
+        st.session_state["copilot_messages"] = st.session_state["copilot_messages"][-20:]

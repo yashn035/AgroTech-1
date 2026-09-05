@@ -1,10 +1,15 @@
+"""
+AgroTech District Yield Analytics Page
+Renders historical district crop harvest yields, multi-year progression (2015-2023), heatmaps, and CSV exports.
+"""
+
 import os
 import sys
-import numpy as np
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
+# Ensure root is in sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from utils.translations import t
 
@@ -28,15 +33,18 @@ st.markdown(f"<div class='sub-header'>{t('app_subtitle', lang)}</div>", unsafe_a
 
 REAL_YIELD_CSV = os.path.join("data", "yield_data_real.csv")
 
-@st.cache_data(show_spinner="Loading real district yield dataset...")
-def load_real_yield_data(csv_path=REAL_YIELD_CSV):
-    """Loads real district yield dataset."""
+@st.cache_data(show_spinner=False)
+def load_real_yield_data(csv_path=REAL_YIELD_CSV) -> pd.DataFrame:
+    """Loads and caches real district yield dataset."""
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"Real yield dataset not found at '{csv_path}'.")
-    df = pd.read_csv(csv_path)
-    return df
+    return pd.read_csv(csv_path)
 
-df_raw = load_real_yield_data()
+try:
+    df_raw = load_real_yield_data()
+except Exception as err:
+    st.error(f"❌ **Dataset Error:** {str(err)}")
+    st.stop()
 
 # Sidebar Controls
 st.sidebar.markdown("### 🎛️ Dashboard Filters")
@@ -66,7 +74,7 @@ df_filtered = df_raw[
 ]
 
 if df_filtered.empty:
-    st.warning("⚠️ No yield data matching selection.")
+    st.warning("⚠️ No yield data matching selection. Please expand filter criteria.")
 else:
     # Metrics
     total_prod = df_filtered["production"].sum()

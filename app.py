@@ -1,4 +1,12 @@
+import os
+import sys
 import streamlit as st
+
+# Ensure root directory is in sys.path
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+from utils.translations import t, TRANSLATIONS
+from utils.auth import login_user, register_user, logout_user, get_current_user
 
 # Page Configuration
 st.set_page_config(
@@ -8,177 +16,170 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling for Main Dashboard
-st.markdown("""
-    <style>
-    .hero-container {
-        background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
-        color: #ffffff;
-        padding: 2.5rem;
-        border-radius: 16px;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 24px rgba(27, 67, 50, 0.15);
-    }
-    .hero-title {
-        font-size: 2.8rem;
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.5px;
-    }
-    .hero-subtitle {
-        font-size: 1.2rem;
-        opacity: 0.92;
-        max-width: 800px;
-        line-height: 1.6;
-    }
-    .feature-card {
-        background: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 1.5rem;
-        height: 100%;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .feature-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    }
-    .feature-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1b4332;
-        margin-bottom: 0.5rem;
-    }
-    .badge-live {
-        background-color: #2e7d32;
-        color: white;
-        padding: 3px 10px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Inject Custom CSS
+css_path = os.path.join("static", "style.css")
+if os.path.exists(css_path):
+    with open(css_path, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Sidebar Navigation Header
+# Sidebar Header & Language Switcher
 st.sidebar.image("https://img.icons8.com/color/96/sprout.png", width=60)
 st.sidebar.title("AgroTech Hub")
-st.sidebar.caption("AI-Powered Farming Ecosystem")
+
+# Language Selector
+lang_choice = st.sidebar.selectbox(
+    "🌐 Choose Language / भाषा चुनें",
+    options=["English", "हिंदी (Hindi)"],
+    index=0 if st.session_state.get("language", "en") == "en" else 1
+)
+lang = "en" if "English" in lang_choice else "hi"
+st.session_state["language"] = lang
+
+st.sidebar.divider()
+
+# Authentication Sidebar Section
+current_user = get_current_user()
+
+if current_user:
+    st.sidebar.success(f"🟢 {t('logged_in_as', lang)}: **{current_user}**")
+    if st.sidebar.button(t("logout", lang), key="btn_logout", type="secondary"):
+        logout_user()
+        st.rerun()
+else:
+    st.sidebar.markdown(f"### {t('auth_header', lang)}")
+    auth_mode = st.sidebar.radio("Account Mode:", [t("login", lang), t("signup", lang)], horizontal=True)
+    
+    with st.sidebar.form("auth_form"):
+        user_input = st.text_input(t("username", lang))
+        pass_input = st.text_input(t("password", lang), type="password")
+        submit_auth = st.form_submit_button(t("login", lang) if auth_mode == t("login", lang) else t("signup", lang))
+        
+        if submit_auth:
+            if auth_mode == t("login", lang):
+                ok, msg = login_user(user_input, pass_input)
+                if ok:
+                    st.sidebar.success(msg)
+                    st.rerun()
+                else:
+                    st.sidebar.error(msg)
+            else:
+                ok, msg = register_user(user_input, pass_input)
+                if ok:
+                    st.sidebar.success(msg)
+                else:
+                    st.sidebar.error(msg)
+
+st.sidebar.divider()
 
 # Navigation Selection
 st.sidebar.markdown("### 📌 Navigation")
 selected_feature = st.sidebar.radio(
     "Choose a Module:",
     [
-        "🏠 Home & Overview",
-        "🌿 Disease Detection + Pesticide Guidance (LIVE)",
-        "📊 Mandi Market Price Checker (LIVE)",
-        "🌱 Smart Crop Recommendation (LIVE)",
-        "🌾 District Crop Yield Estimator (LIVE)",
-        "🔬 Early Stage Disease Prevention (LIVE)"
+        t("nav_home", lang),
+        t("nav_disease", lang),
+        t("nav_market", lang),
+        t("nav_crop", lang),
+        t("nav_yield", lang),
+        t("nav_early", lang)
     ]
 )
 
-st.sidebar.divider()
-st.sidebar.success("✅ **All 5 AgroTech Modules Are Fully Operational!**")
-
-# Main Body Content based on selection
-if selected_feature == "🌿 Disease Detection + Pesticide Guidance (LIVE)":
+# Navigation Redirects
+if selected_feature == t("nav_disease", lang):
     st.switch_page("pages/disease_detection.py")
-elif selected_feature == "📊 Mandi Market Price Checker (LIVE)":
+elif selected_feature == t("nav_market", lang):
     st.switch_page("pages/market_price.py")
-elif selected_feature == "🌱 Smart Crop Recommendation (LIVE)":
+elif selected_feature == t("nav_crop", lang):
     st.switch_page("pages/crop_recommendation.py")
-elif selected_feature == "🌾 District Crop Yield Estimator (LIVE)":
+elif selected_feature == t("nav_yield", lang):
     st.switch_page("pages/district_yield.py")
-elif selected_feature == "🔬 Early Stage Disease Prevention (LIVE)":
+elif selected_feature == t("nav_early", lang):
     st.switch_page("pages/early_disease.py")
 else:
-    # Home Page Dashboard
-    st.markdown("""
+    # Main Dashboard Hero
+    st.markdown(f"""
         <div class="hero-container">
-            <div class="hero-title">🌾 AgroTech Platform</div>
+            <div class="hero-title">{t('app_title', lang)}</div>
             <div class="hero-subtitle">
-                Empowering farmers and agricultural experts with AI-driven crop diagnostics, precise chemical treatment protocols, real-time market discovery, machine learning crop selection, and district yield analytics.
+                {t('app_subtitle', lang)}
             </div>
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("## ⚡ Live Platform Modules")
+    st.markdown("## ⚡ Live Modules")
     
     col1, col2 = st.columns(2, gap="large")
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
             <div class="feature-card">
-                <span class="badge-live">LIVE NOW</span>
-                <div class="feature-title" style="margin-top: 10px;">🌿 Disease Detection & Pesticide Recommendation</div>
+                <span class="badge-live">{t('live_badge', lang)}</span>
+                <div class="feature-title" style="margin-top: 10px;">{t('nav_disease', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
-                    Upload leaf photos to instantly diagnose 30 plant disease classes across Banana, Cauliflower, Chilli, Groundnut, and Radish. Automatically pairs diagnoses with dosage and dilution instructions.
+                    Diagnose 30 leaf disease classes across 5 crop species using deep learning Keras models and paired pesticide dosages.
                 </p>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("Launch Disease Detection ➔", key="btn_disease", type="primary"):
+        if st.button(f"{t('nav_disease', lang)} ➔", key="btn_disease", type="primary"):
             st.switch_page("pages/disease_detection.py")
             
         st.write("")
-        st.markdown("""
+        st.markdown(f"""
             <div class="feature-card">
-                <span class="badge-live">LIVE NOW</span>
-                <div class="feature-title" style="margin-top: 10px;">📊 Mandi Market Price Checker</div>
+                <span class="badge-live">{t('live_badge', lang)}</span>
+                <div class="feature-title" style="margin-top: 10px;">{t('nav_market', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
-                    Real-time market price integration using Government Mandi APIs (data.gov.in), tracking daily commodity prices, state-wise filters, and price trend metrics.
+                    Query real-time Indian Mandi arrival prices directly from data.gov.in REST APIs.
                 </p>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("Launch Market Price Checker ➔", key="btn_market"):
+        if st.button(f"{t('nav_market', lang)} ➔", key="btn_market"):
             st.switch_page("pages/market_price.py")
 
         st.write("")
-        st.markdown("""
+        st.markdown(f"""
             <div class="feature-card">
-                <span class="badge-live">LIVE NOW</span>
-                <div class="feature-title" style="margin-top: 10px;">🌱 Smart Crop Recommendation</div>
+                <span class="badge-live">{t('live_badge', lang)}</span>
+                <div class="feature-title" style="margin-top: 10px;">{t('nav_crop', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
-                    Random Forest ML model recommending the best crops to plant based on soil NPK ratios, pH level, temperature, humidity, and rainfall data.
+                    Random Forest ML classifier trained on real soil-climate datasets recommending optimal crops.
                 </p>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("Launch Crop Recommendation ➔", key="btn_crop"):
+        if st.button(f"{t('nav_crop', lang)} ➔", key="btn_crop"):
             st.switch_page("pages/crop_recommendation.py")
         
     with col2:
-        st.markdown("""
+        st.markdown(f"""
             <div class="feature-card">
-                <span class="badge-live">LIVE NOW</span>
-                <div class="feature-title" style="margin-top: 10px;">🌾 District Crop Yield Estimator</div>
+                <span class="badge-live">{t('live_badge', lang)}</span>
+                <div class="feature-title" style="margin-top: 10px;">{t('nav_yield', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
-                    Predicts and analyzes crop harvest yield per hectare based on district agricultural history (2015-2023), yield heatmaps, and CSV exports.
+                    District harvest yield analytics, multi-year progression (2015-2023), heatmaps, and CSV data export.
                 </p>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("Launch District Yield Estimator ➔", key="btn_yield"):
+        if st.button(f"{t('nav_yield', lang)} ➔", key="btn_yield"):
             st.switch_page("pages/district_yield.py")
         
         st.write("")
-        st.markdown("""
+        st.markdown(f"""
             <div class="feature-card">
-                <span class="badge-live">LIVE NOW</span>
-                <div class="feature-title" style="margin-top: 10px;">🔬 Early Stage Disease Prevention</div>
+                <span class="badge-live">{t('live_badge', lang)}</span>
+                <div class="feature-title" style="margin-top: 10px;">{t('nav_early', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
-                    Agronomic early warning system predicting pathogen outbreak risks based on real-time micro-climate weather triggers (Temp, Humidity, Rainfall).
+                    Rule-based early disease warning system calculating pathogen outbreak risk scores based on micro-climate weather triggers.
                 </p>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("Launch Early Disease Prevention ➔", key="btn_early"):
+        if st.button(f"{t('nav_early', lang)} ➔", key="btn_early"):
             st.switch_page("pages/early_disease.py")
 
     st.divider()
-    st.markdown("### 📊 System Status & Metrics")
+    st.markdown("### 📊 System Specs")
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Live Features", "5 / 5 Fully Live")
-    m2.metric("Supported Crops", "12 Major Indian Crops")
-    m3.metric("Disease Classes", "30 Image ML + 15 Weather Rules")
-    m4.metric("Market Mandis", "Live API (data.gov.in)")
+    m1.metric("Production Status", "100% Live & Containerized")
+    m2.metric("Supported Languages", "English & हिंदी (Hindi)")
+    m3.metric("Datasets", "Real ICAR/Kaggle + Mandi API")
+    m4.metric("Authentication", "Encrypted bcrypt / local JSON")

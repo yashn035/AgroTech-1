@@ -1,16 +1,19 @@
 # 🌾 AgroTech - Next-Gen Agricultural Intelligence Platform
 
-**AgroTech** is a production-grade Streamlit web application designed to empower farmers, agronomists, and agricultural researchers with AI-driven crop diagnostics, instant treatment recommendations, real-time market pricing, predictive crop selection, district yield analytics, and early disease risk warnings.
+**AgroTech** is a production-grade, multi-page Streamlit web application designed to empower farmers, agronomists, and agricultural researchers with AI-driven crop diagnostics, instant treatment recommendations, real-time market pricing, predictive crop selection, district yield analytics, and early disease risk warnings.
 
 ---
 
-## 📌 Features Status (All 5 Modules 100% LIVE!)
+## 📌 Production Features & Capabilities (Phase 6 Complete)
 
 - **🌿 Disease Detection & Pesticide Guidance (LIVE)**: Deep learning model (`disease_modal_final.keras`) classifies 30 leaf disease/healthy condition classes and recommends pesticide treatment, dosage, and dilution.
 - **📊 Mandi Market Price Checker (LIVE)**: Real-time Government Mandi API integration (`data.gov.in`) fetching daily arrival prices (Min, Max, Modal) for commodities across Indian states, districts, and markets.
-- **🌱 Smart Crop Recommendation (LIVE)**: Machine Learning model (Random Forest Classifier) recommending optimal crops based on soil N-P-K nutrients, temperature, humidity, pH level, and rainfall.
-- **🌾 District Crop Yield Estimator (LIVE)**: Interactive analytics dashboard exploring district harvest yields (kg/ha), production tonnages, multi-year trends (2015–2023), yield heatmaps, and CSV data export.
+- **🌱 Smart Crop Recommendation (LIVE)**: Machine Learning model (Random Forest Classifier) trained on **real ICAR/Kaggle agronomic datasets** (`data/crop_recommendation_real.csv`) recommending optimal crops across 22 crop species based on soil N-P-K nutrients, temperature, humidity, pH level, and rainfall.
+- **🌾 District Crop Yield Estimator (LIVE)**: Interactive analytics dashboard exploring real district harvest yields (kg/ha), production tonnages, multi-year trends (2015–2023), yield heatmaps, and CSV data export.
 - **🔬 Early Stage Disease Prevention (LIVE)**: Rule-based agronomic early warning system assessing disease outbreak risk levels (Low, Moderate, High) and preventive advisories based on real-time temperature, humidity, and rainfall conditions.
+- **🌐 Multi-Language Support**: Full bilingual UI support for **English (`en`)** and **Hindi (`hi` 🇮🇳)** selectable via the sidebar.
+- **🔐 User Authentication**: User registration and login with encrypted password storage (`bcrypt`) and session persistence.
+- **🐳 Docker & Container Deployment**: Containerized configuration with `Dockerfile`, `docker-compose.yml`, and `deploy.sh`.
 
 ---
 
@@ -22,32 +25,40 @@ AgroTech/
 ├── pages/
 │   ├── disease_detection.py                 # LIVE: Disease Detection & Pesticide Guidance
 │   ├── market_price.py                      # LIVE: Mandi Market Price Checker
-│   ├── crop_recommendation.py               # LIVE: Smart Crop Recommendation
+│   ├── crop_recommendation.py               # LIVE: Smart Crop Recommendation (Real Dataset)
 │   ├── district_yield.py                    # LIVE: District Crop Yield Estimator & Analytics
 │   └── early_disease.py                     # LIVE: Early Stage Disease Prevention & Risk Warning
 ├── utils/
 │   ├── __init__.py
 │   ├── model_loader.py                      # Keras model loader, preprocessing & inference
 │   ├── pesticide_mapper.py                  # Cached CSV dataset lookup & mapping logic
-│   └── market_api.py                        # Mandi API client (data.gov.in integration)
+│   ├── market_api.py                        # Mandi API client (data.gov.in integration)
+│   ├── translations.py                      # Multi-language dictionary (English & Hindi)
+│   └── auth.py                              # User authentication & password hashing
 ├── data/
 │   ├── model_class_to_pesticide_mapping.csv  # 30-class disease to pesticide mapping database
-│   └── pesticide_recommendation_dataset.csv  # Reference dataset
+│   ├── pesticide_recommendation_dataset.csv  # Reference dataset
+│   ├── crop_recommendation_real.csv          # Real 22-crop soil-climate dataset
+│   └── yield_data_real.csv                   # Real district harvest yield dataset
+├── static/
+│   └── style.css                            # Custom styling & mobile responsiveness
 ├── .env.example                             # Environment configuration template
 ├── .gitignore                               # Git exclusion rules
-├── requirements.txt                         # Core dependencies
+├── requirements.txt                         # Production dependencies
+├── Dockerfile                               # Container build configuration
+├── docker-compose.yml                       # Multi-container orchestration
+├── deploy.sh                                # One-click deployment shell script
 └── README.md                                # Documentation
 ```
 
 ---
 
-## 🚀 Setup & Execution Instructions
+## 🚀 Setup & Local Execution Instructions
 
 ### 1. Prerequisites
 - Python 3.9+ installed.
 
 ### 2. Install Dependencies
-Clone or navigate to the project directory and install the required packages:
 ```bash
 pip install -r requirements.txt
 ```
@@ -57,37 +68,61 @@ Copy `.env.example` to create your local `.env` file:
 ```bash
 cp .env.example .env
 ```
-
-Open `.env` and configure your `data.gov.in` Mandi API key:
+Set your `MANDI_API_KEY` in `.env`:
 ```env
 MANDI_API_KEY=your_actual_api_key_here
 ```
-> **How to get a free Mandi API key:**
-> 1. Register for a free developer account at [data.gov.in](https://data.gov.in/).
-> 2. Search for the dataset: *Daily Mandi Prices*.
-> 3. Generate an API Key under your account API keys dashboard.
 
-*(If the API key is not configured, the Market Price page provides a simulated preview mode for UI testing).*
-
-### 4. Model File Setup
-Place your trained Keras model file named `disease_modal_final.keras` at the project root (`AgroTech/disease_modal_final.keras`).
-
----
-
-## 💡 How to Run the Application
-
-Launch the Streamlit web app:
+### 4. Run the Application
 ```bash
 streamlit run app.py
 ```
-The app will open automatically in your browser at `http://localhost:8501`.
+Open your browser at `http://localhost:8501`.
 
 ---
 
-## 🛡️ Target Disease Classes & Recommended Crops
+## 🌐 Deployment Instructions
 
-### Crop Recommendation Model (12 Targets)
-`rice`, `wheat`, `maize`, `cotton`, `sugarcane`, `groundnut`, `mango`, `banana`, `tomato`, `potato`, `onion`, `chickpea`
+### Option A: Deployment to Streamlit Cloud (Recommended)
+1. Fork or push this repository to GitHub: `https://github.com/yashn035/AgroTech-`.
+2. Go to [share.streamlit.io](https://share.streamlit.io/) and log in with your GitHub account.
+3. Click **New app**, select repository `yashn035/AgroTech-`, branch `main`, and main file `app.py`.
+4. In Advanced Settings, add your environment variables under **Secrets**:
+   ```toml
+   MANDI_API_KEY = "your_actual_api_key_here"
+   ```
+5. Click **Deploy!**
+
+### Option B: Deployment using Docker
+1. Build the Docker image:
+   ```bash
+   docker build -t agrotech-app .
+   ```
+2. Run the Docker container:
+   ```bash
+   docker run -d -p 8501:8501 --name agrotech --env-file .env agrotech-app
+   ```
+3. Alternatively, launch with Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+
+### Option C: Deployment to Hugging Face Spaces
+1. Create a new Space on [huggingface.co/spaces](https://huggingface.co/spaces) and choose the **Streamlit** SDK.
+2. Clone your Space repo and copy all files from `AgroTech/` into it.
+3. Commit and push to Hugging Face:
+   ```bash
+   git add .
+   git commit -m "Deploy AgroTech to Hugging Face Spaces"
+   git push
+   ```
+
+---
+
+## 🛡️ Target Disease Classes & Real Crop Dataset
+
+### Real Crop Recommendation Dataset (22 Crops)
+`rice`, `maize`, `chickpea`, `kidneybeans`, `pigeonpeas`, `mothbeans`, `mungbean`, `blackgram`, `lentil`, `pomegranate`, `banana`, `mango`, `grapes`, `watermelon`, `muskmelon`, `apple`, `orange`, `papaya`, `coconut`, `cotton`, `jute`, `coffee`
 
 ### Disease Detection Model (30 Classes)
 - **Banana**: `banana_bract_mosaic_virus`, `banana_cordana`, `banana_healthy`, `banana_insectpest`, `banana_moko`, `banana_panama`, `banana_pestalotiopsis`, `banana_sigatoka`, `banana_yb_sigatoka`

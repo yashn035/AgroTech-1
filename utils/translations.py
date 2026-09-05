@@ -1,0 +1,100 @@
+"""
+AgroTech Internationalization & Translation Module (English & Hindi)
+"""
+
+TRANSLATIONS = {
+    "en": {
+        "app_title": "🌾 AgroTech Platform",
+        "app_subtitle": "Empowering farmers with AI crop diagnostics, real-time market prices, smart crop selection, district yield analytics, and early disease risk warnings.",
+        "nav_home": "🏠 Home & Overview",
+        "nav_disease": "🌿 Disease Detection + Pesticide Guidance",
+        "nav_market": "📊 Mandi Market Price Checker",
+        "nav_crop": "🌱 Smart Crop Recommendation",
+        "nav_yield": "🌾 District Crop Yield Estimator",
+        "nav_early": "🔬 Early Stage Disease Prevention",
+        "live_badge": "LIVE NOW",
+        "lang_select": "🌐 Choose Language / भाषा चुनें",
+        "auth_header": "👤 User Account",
+        "login": "Login",
+        "signup": "Sign Up",
+        "username": "Username",
+        "password": "Password",
+        "logged_in_as": "Logged in as",
+        "logout": "Logout",
+        "btn_recommend": "🌱 Recommend Optimal Crop",
+        "btn_assess": "🔬 Assess Disease Risk",
+        "btn_fetch_prices": "Fetch Market Prices ➔",
+        "state": "State",
+        "district": "District",
+        "commodity": "Commodity",
+        "market": "Market",
+        "nitrogen": "Nitrogen (N) ratio in soil",
+        "phosphorus": "Phosphorus (P) ratio in soil",
+        "potassium": "Potassium (K) ratio in soil",
+        "temperature": "Average Temperature (°C)",
+        "humidity": "Relative Humidity (%)",
+        "ph": "Soil pH level",
+        "rainfall": "Rainfall (mm)",
+        "optimal_crop": "Optimal Recommended Crop",
+        "match_confidence": "Match Confidence",
+        "model_accuracy": "ML Model Test Accuracy",
+        "total_production": "Total Production",
+        "avg_yield": "Average Yield",
+        "area_harvested": "Total Area Harvested",
+        "district_records": "District Records",
+        "low_risk": "🟢 LOW RISK",
+        "mod_risk": "🟡 MODERATE RISK",
+        "high_risk": "🔴 HIGH RISK ALERT"
+    },
+    "hi": {
+        "app_title": "🌾 एग्रोटेक प्लेटफॉर्म",
+        "app_subtitle": "एआई फसल निदान, वास्तविक समय के मंडी भाव, स्मार्ट फसल चयन, जिला उपज विश्लेषण और प्रारंभिक बीमारी जोखिम चेतावनियों के साथ किसानों को सशक्त बनाना।",
+        "nav_home": "🏠 होम और अवलोकन",
+        "nav_disease": "🌿 बीमारी की पहचान + कीटनाशक सिफारिश",
+        "nav_market": "📊 मंडी बाजार मूल्य जांच",
+        "nav_crop": "🌱 स्मार्ट फसल सिफारिश (एआई)",
+        "nav_yield": "🌾 जिला फसल उपज अनुमानक",
+        "nav_early": "🔬 प्रारंभिक बीमारी रोकथाम चेतावनी",
+        "live_badge": "सक्रिय (लाइव)",
+        "lang_select": "🌐 भाषा चुनें / Choose Language",
+        "auth_header": "👤 उपयोगकर्ता खाता",
+        "login": "लॉग इन करें",
+        "signup": "साइन अप करें",
+        "username": "उपयोगकर्ता नाम",
+        "password": "पासवर्ड",
+        "logged_in_as": "के रूप में लॉग इन किया गया",
+        "logout": "लॉग आउट",
+        "btn_recommend": "🌱 सर्वोत्तम फसल की सिफारिश प्राप्त करें",
+        "btn_assess": "🔬 बीमारी के जोखिम का आकलन करें",
+        "btn_fetch_prices": "मंडी भाव प्राप्त करें ➔",
+        "state": "राज्य",
+        "district": "जिला",
+        "commodity": "फसल / जिन्स",
+        "market": "मंडी (बाजार)",
+        "nitrogen": "मिट्टी में नाइट्रोजन (N) की मात्रा",
+        "phosphorus": "मिट्टी में फास्फोरस (P) की मात्रा",
+        "potassium": "मिट्टी में पोटेशियम (K) की मात्रा",
+        "temperature": "औसत तापमान (°C)",
+        "humidity": "आपेक्षिक आर्द्रता (%)",
+        "ph": "मिट्टी का पीएच (pH) स्तर",
+        "rainfall": "वर्षा की मात्रा (mm)",
+        "optimal_crop": "अनुशंसित सर्वोत्तम फसल",
+        "match_confidence": "मैच सटीकता दर",
+        "model_accuracy": "मॉडल परीक्षण सटीकता",
+        "total_production": "कुल कुल उत्पादन",
+        "avg_yield": "औसत उपज (प्रति हेक्टेयर)",
+        "area_harvested": "कुल बोया गया क्षेत्र",
+        "district_records": "जिला रिकॉर्ड्स",
+        "low_risk": "🟢 कम जोखिम (सुरक्षित)",
+        "mod_risk": "🟡 मध्यम जोखिम",
+        "high_risk": "🔴 उच्च जोखिम चेतावनी"
+    }
+}
+
+def t(key: str, lang: str = "en") -> str:
+    """
+    Retrieves translated string for the given key and language.
+    Falls back to English if key is missing in chosen language.
+    """
+    lang_dict = TRANSLATIONS.get(lang, TRANSLATIONS["en"])
+    return lang_dict.get(key, TRANSLATIONS["en"].get(key, key))

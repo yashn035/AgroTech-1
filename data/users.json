@@ -1,0 +1,14 @@
+{
+  "farmer_demo": {
+    "password_hash": "$2b$12$rz7XYSJPwJYANb0vGX1T3.4GSPOicWnO7GdP3yTZuZFZGVGcUD0yW",
+    "preferences": {
+      "language": "en"
+    }
+  },
+  "test_farmer_99": {
+    "password_hash": "$2b$12$zx/xVlSeIi35ZMY8dJCVIeB4i1LkHuNsxaVolZtUpZfkOL1oP1a0C",
+    "preferences": {
+      "language": "en"
+    }
+  }
+}

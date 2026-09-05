@@ -88,34 +88,34 @@ st.sidebar.divider()
 # Navigation Selection
 st.sidebar.markdown("### 📌 Navigation")
 selected_feature = st.sidebar.radio(
-    "Go to",
+    "Choose a Module:",
     [
         t("nav_home", lang),
-        t("nav_copilot", lang),
-        t("nav_crop", lang),
         t("nav_decision", lang),
+        t("nav_copilot", lang),
         t("nav_disease", lang),
+        t("nav_market", lang),
+        t("nav_crop", lang),
         t("nav_yield", lang),
-        t("nav_early", lang),
-        t("nav_market", lang)
+        t("nav_early", lang)
     ]
 )
 
 # Navigation Redirects
-if selected_feature == t("nav_copilot", lang):
-    st.switch_page("pages/copilot.py")
-elif selected_feature == t("nav_crop", lang):
-    st.switch_page("pages/crop_recommendation.py")
-elif selected_feature == t("nav_decision", lang):
-    st.switch_page("pages/decision_engine.py")
+if selected_feature == t("nav_decision", lang):
+    st.switch_page("pages/Decision_Engine.py")
+elif selected_feature == t("nav_copilot", lang):
+    st.switch_page("pages/Copilot.py")
 elif selected_feature == t("nav_disease", lang):
-    st.switch_page("pages/disease_detection.py")
-elif selected_feature == t("nav_yield", lang):
-    st.switch_page("pages/district_yield.py")
-elif selected_feature == t("nav_early", lang):
-    st.switch_page("pages/early_disease.py")
+    st.switch_page("pages/Disease_Detection.py")
 elif selected_feature == t("nav_market", lang):
-    st.switch_page("pages/market_price.py")
+    st.switch_page("pages/Market_Price.py")
+elif selected_feature == t("nav_crop", lang):
+    st.switch_page("pages/Crop_Recommendation.py")
+elif selected_feature == t("nav_yield", lang):
+    st.switch_page("pages/District_Yield.py")
+elif selected_feature == t("nav_early", lang):
+    st.switch_page("pages/Early_Disease.py")
 else:
     # Main Dashboard Hero
     st.markdown(f"""
@@ -142,7 +142,7 @@ else:
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_decision', lang)} ➔", key="btn_decision", type="primary"):
-            st.switch_page("pages/decision_engine.py")
+            st.switch_page("pages/Decision_Engine.py")
 
         st.write("")
         st.markdown(f"""
@@ -155,7 +155,7 @@ else:
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_copilot', lang)} ➔", key="btn_copilot"):
-            st.switch_page("pages/copilot.py")
+            st.switch_page("pages/Copilot.py")
 
         st.write("")
         st.markdown(f"""
@@ -168,7 +168,7 @@ else:
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_disease', lang)} ➔", key="btn_disease"):
-            st.switch_page("pages/disease_detection.py")
+            st.switch_page("pages/Disease_Detection.py")
             
         st.write("")
         st.markdown(f"""
@@ -181,7 +181,7 @@ else:
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_market', lang)} ➔", key="btn_market"):
-            st.switch_page("pages/market_price.py")
+            st.switch_page("pages/Market_Price.py")
 
     with col2:
         st.markdown(f"""
@@ -194,7 +194,7 @@ else:
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_crop', lang)} ➔", key="btn_crop"):
-            st.switch_page("pages/crop_recommendation.py")
+            st.switch_page("pages/Crop_Recommendation.py")
         
         st.write("")
         st.markdown(f"""
@@ -207,7 +207,7 @@ else:
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_yield', lang)} ➔", key="btn_yield"):
-            st.switch_page("pages/district_yield.py")
+            st.switch_page("pages/District_Yield.py")
         
         st.write("")
         st.markdown(f"""
@@ -220,7 +220,7 @@ else:
             </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t('nav_early', lang)} ➔", key="btn_early"):
-            st.switch_page("pages/early_disease.py")
+            st.switch_page("pages/Early_Disease.py")
 
     st.divider()
     st.markdown("### 📊 System Specs")

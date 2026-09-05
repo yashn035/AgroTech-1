@@ -77,6 +77,7 @@ selected_feature = st.sidebar.radio(
     "Choose a Module:",
     [
         t("nav_home", lang),
+        t("nav_decision", lang),
         t("nav_copilot", lang),
         t("nav_disease", lang),
         t("nav_market", lang),
@@ -87,7 +88,9 @@ selected_feature = st.sidebar.radio(
 )
 
 # Navigation Redirects
-if selected_feature == t("nav_copilot", lang):
+if selected_feature == t("nav_decision", lang):
+    st.switch_page("pages/decision_engine.py")
+elif selected_feature == t("nav_copilot", lang):
     st.switch_page("pages/copilot.py")
 elif selected_feature == t("nav_disease", lang):
     st.switch_page("pages/disease_detection.py")
@@ -118,13 +121,26 @@ else:
         st.markdown(f"""
             <div class="feature-card">
                 <span class="badge-live">{t('live_badge', lang)}</span>
+                <div class="feature-title" style="margin-top: 10px;">🚜 {t('nav_decision', lang)}</div>
+                <p style="color: #555; font-size: 0.95rem;">
+                    Central intelligence dashboard synthesizing soil nutrients, micro-weather, plant disease status, and Mandi price trends into a Personalised Farm Action Plan.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button(f"{t('nav_decision', lang)} ➔", key="btn_decision", type="primary"):
+            st.switch_page("pages/decision_engine.py")
+
+        st.write("")
+        st.markdown(f"""
+            <div class="feature-card">
+                <span class="badge-live">{t('live_badge', lang)}</span>
                 <div class="feature-title" style="margin-top: 10px;">🤖 {t('nav_copilot', lang)}</div>
                 <p style="color: #555; font-size: 0.95rem;">
                     RAG-powered AI chatbot assistant providing instant responses to crop care, disease control, soil fertilizing, and Mandi price queries.
                 </p>
             </div>
         """, unsafe_allow_html=True)
-        if st.button(f"{t('nav_copilot', lang)} ➔", key="btn_copilot", type="primary"):
+        if st.button(f"{t('nav_copilot', lang)} ➔", key="btn_copilot"):
             st.switch_page("pages/copilot.py")
 
         st.write("")

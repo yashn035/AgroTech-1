@@ -27,12 +27,26 @@ st.sidebar.image("https://img.icons8.com/color/96/sprout.png", width=60)
 st.sidebar.title("AgroTech Hub")
 
 # Language Selector
+curr_lang = st.session_state.get("language", "en")
+lang_index = 0
+if curr_lang == "hi":
+    lang_index = 1
+elif curr_lang == "mr":
+    lang_index = 2
+
 lang_choice = st.sidebar.selectbox(
-    "🌐 Choose Language / भाषा चुनें",
-    options=["English", "हिंदी (Hindi)"],
-    index=0 if st.session_state.get("language", "en") == "en" else 1
+    "🌐 Choose Language / भाषा चुनें / भाषा निवडा",
+    options=["English", "हिंदी (Hindi)", "मराठी (Marathi)"],
+    index=lang_index
 )
-lang = "en" if "English" in lang_choice else "hi"
+
+if "मराठी" in lang_choice:
+    lang = "mr"
+elif "हिंदी" in lang_choice:
+    lang = "hi"
+else:
+    lang = "en"
+
 st.session_state["language"] = lang
 
 st.sidebar.divider()
@@ -213,5 +227,5 @@ else:
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Production Status", "100% Live & Containerized")
     m2.metric("AI Copilot", "Active RAG Assistant")
-    m3.metric("Supported Languages", "English & हिंदी (Hindi)")
+    m3.metric("Supported Languages", "English, हिंदी & मराठी")
     m4.metric("Authentication", "Encrypted bcrypt / local JSON")

@@ -33,7 +33,7 @@ if os.path.exists(css_path):
 lang = st.session_state.get("language", "en")
 
 # Header
-st.markdown(f"<h1 class='main-header'>🚜 {t('nav_decision', lang) if 'nav_decision' in t('nav_decision', lang) else 'Agro Decision Engine'}</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 class='main-header'>🚜 {t('nav_decision', lang)}</h1>", unsafe_allow_html=True)
 st.markdown(
     "<div class='sub-header'>Central Intelligence Dashboard synthesizing Soil, Weather, Plant Disease, and Mandi Prices into a Personalised Farm Action Plan.</div>",
     unsafe_allow_html=True

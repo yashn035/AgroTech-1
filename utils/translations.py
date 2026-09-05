@@ -1,5 +1,5 @@
 """
-AgroTech Internationalization & Translation Module (English & Hindi)
+AgroTech Internationalization & Translation Module (English, Hindi, & Marathi)
 """
 
 TRANSLATIONS = {
@@ -15,7 +15,7 @@ TRANSLATIONS = {
         "nav_decision": "🚜 Agro Decision Engine",
         "nav_copilot": "🤖 AI Agricultural Copilot",
         "live_badge": "LIVE NOW",
-        "lang_select": "🌐 Choose Language / भाषा चुनें",
+        "lang_select": "🌐 Choose Language / भाषा चुनें / भाषा निवडा",
         "auth_header": "👤 User Account",
         "login": "Login",
         "signup": "Sign Up",
@@ -94,6 +94,52 @@ TRANSLATIONS = {
         "low_risk": "🟢 कम जोखिम (सुरक्षित)",
         "mod_risk": "🟡 मध्यम जोखिम",
         "high_risk": "🔴 उच्च जोखिम चेतावनी"
+    },
+    "mr": {
+        "app_title": "🌾 एग्रोटेक प्लॅटफॉर्म",
+        "app_subtitle": "एआय पीक निदान, रिअल-टाइम बाजार भाव, स्मार्ट नफा पीक निवड, जिल्हा उत्पादन विश्लेषण, रोगाचा पूर्व इशारा आणि एआय सहाय्यकासह शेतकऱ्यांना सक्षम बनवणे.",
+        "nav_home": "🏠 मुख्यपृष्ठ आणि विहंगावलोकन",
+        "nav_disease": "🌿 रोग ओळख + कीटकनाशक मार्गदर्शन",
+        "nav_market": "📊 बाजार समिती मंडी भाव",
+        "nav_crop": "🌱 स्मार्ट पीक शिफारस (नफ्यावर आधारित)",
+        "nav_yield": "🌾 जिल्हा पीक उत्पादन अंदाज",
+        "nav_early": "🔬 रोग प्रतिबंधक पूर्वसूचना",
+        "nav_decision": "🚜 कृषी निर्णय इंजिन (कृती योजना)",
+        "nav_copilot": "🤖 एआय कृषी सहाय्यक (कोपायलट)",
+        "live_badge": "थेट (लाइव्ह)",
+        "lang_select": "🌐 भाषा निवडा / Choose Language",
+        "auth_header": "👤 वापरकर्ता खाते",
+        "login": "लॉग इन करा",
+        "signup": "साइन अप करा",
+        "username": "वापरकर्ता नाव",
+        "password": "पासवर्ड",
+        "logged_in_as": "लॉग इन केले आहे",
+        "logout": "लॉग आउट",
+        "btn_recommend": "🌱 सर्वोत्तम पीक शिफारस मिळवा",
+        "btn_assess": "🔬 रोगाच्या धोक्याचे मूल्यांकन करा",
+        "btn_copilot": "🤖 एआय सहाय्यकाला विचारा ➔",
+        "btn_fetch_prices": "मंडी भाव मिळवा ➔",
+        "state": "राज्य",
+        "district": "जिल्हा",
+        "commodity": "शेतीमाल / पीक",
+        "market": "बाजार समिती (मंडी)",
+        "nitrogen": "मातीतील नायट्रोजन (N) प्रमाण",
+        "phosphorus": "मातीतील फॉस्फरस (P) प्रमाण",
+        "potassium": "मातीतील पोटॅशियम (K) प्रमाण",
+        "temperature": "सरासरी तापमान (°C)",
+        "humidity": "सापेक्ष आर्द्रता (%)",
+        "ph": "मातीचा सामू (pH) स्तर",
+        "rainfall": "पावसाचे प्रमाण (mm)",
+        "optimal_crop": "शिफारस केलेले सर्वोत्तम पीक",
+        "match_confidence": "मॅच अचूकता",
+        "model_accuracy": "एमएल मॉडेल अचूकता",
+        "total_production": "एकूण उत्पादन",
+        "avg_yield": "सरासरी उत्पादन (प्रति हेक्टर)",
+        "area_harvested": "एकूण कापणी क्षेत्र",
+        "district_records": "जिल्हा नोंदी",
+        "low_risk": "🟢 कमी धोका (सुरक्षित)",
+        "mod_risk": "🟡 मध्यम धोका",
+        "high_risk": "🔴 उच्च धोक्याची सूचना"
     }
 }
 

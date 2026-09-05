@@ -20,3 +20,6 @@ env/
 # Temporary Scratch & Artifacts
 scratch/
 
+# Keras Model Exception
+!disease_modal_final.keras
+

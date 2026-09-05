@@ -244,15 +244,20 @@ if generate_plan_btn or st.session_state.get("plan_generated", True):
             st.info(f"🌦 **Weather Alert**: Favorable temperature ({temp_val}°C) and rainfall ({rainfall_val}mm).")
 
         # Fetch Market Price for Alert with Spinner & Fallback
-        with st.spinner("Fetching Mandi market prices..."):
-            mandi_data, err = fetch_market_prices(state=selected_state, commodity=selected_crop.capitalize(), limit=1)
-            if not mandi_data.empty and 'modal_price' in mandi_data.columns:
-                m_price = mandi_data.iloc[0]['modal_price']
-                st.success(f"💰 **Market Price Alert**: Current Mandi price for **{selected_crop.capitalize()}** in **{selected_state}** is **₹{m_price}/quintal**. Good price window!")
-            else:
-                default_prices = {'rice': 2250, 'maize': 1950, 'chickpea': 5440, 'cotton': 6800, 'banana': 1400, 'wheat': 2275, 'tomato': 3200, 'potato': 1800}
-                fallback = default_prices.get(selected_crop.lower(), 2500)
-                st.info(f"💰 **Market Price Alert**: Regional benchmark modal price for **{selected_crop.capitalize()}** is **₹{fallback}/quintal**.")
+        records = []
+        try:
+            with st.spinner("Fetching Mandi market prices..."):
+                records = fetch_market_prices(state=selected_state, commodity=selected_crop.capitalize(), limit=1)
+        except Exception:
+            records = []
+
+        if records and isinstance(records, list) and len(records) > 0 and 'modal_price' in records[0]:
+            m_price = records[0]['modal_price']
+            st.success(f"💰 **Market Price Alert**: Current Mandi price for **{selected_crop.capitalize()}** in **{selected_state}** is **₹{m_price}/quintal**. Good price window!")
+        else:
+            default_prices = {'rice': 2250, 'maize': 1950, 'chickpea': 5440, 'cotton': 6800, 'banana': 1400, 'wheat': 2275, 'tomato': 3200, 'potato': 1800}
+            fallback = default_prices.get(selected_crop.lower(), 2500)
+            st.info(f"💰 **Market Price Alert**: Regional benchmark modal price for **{selected_crop.capitalize()}** is **₹{fallback}/quintal**.")
 
     st.divider()
 
